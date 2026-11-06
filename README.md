@@ -6,7 +6,7 @@
 
 | Файл | Назначение |
 |------|------------|
-| `install_kes_v9.py` | **Установщик** (один файл). Качает `adb` + `scrcpy`, собирает `Android-manager.exe` через PyInstaller, ставит в `%LOCALAPPDATA%\Android-manager`, создаёт ярлыки. Запуск: `python install_kes_v9.py` (GUI) или `--cli` (без окон). |
+| `Android_manager.py` | **Установщик** (один файл). Качает `adb` + `scrcpy`, собирает `Android-manager.exe` через PyInstaller, ставит в `%LOCALAPPDATA%\Android-manager`, создаёт ярлыки. Запуск: `python Android_manager.py` (GUI) или `--cli` (без окон). |
 | `tvdiag_report.py` | **Диагностика ТВ** — отправляет на устройство **одну** пакетную `adb shell` команду, парсит вывод и печатает структурированный отчёт (CPU, память, GPU, HDMI/CEC, сеть, логи, перезагрузки). Работает внутри Android-manager (где `adb` — это `ScriptAPI`), для CLI замените `adb.shell(COMMANDS)` на `subprocess.run(["adb", "shell", ...])`. |
 | `AGENTS.md` | Инструкции для ИИ-агентов (Hermes, Codex и др.) — как работать с репозиторием. |
 
@@ -14,7 +14,7 @@
 
 ```bash
 # Установка менеджера (Windows)
-python install_kes_v9.py
+python Android_manager.py
 
 # Диагностика устройства (нужен adb в PATH и подключенное устройство)
 python tvdiag_report.py
