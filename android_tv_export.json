@@ -1,0 +1,622 @@
+{
+  "format": "android-tv-bundle",
+  "version": "1.7",
+  "settings": {
+    "favorites": [
+      {
+        "name": "192.168.88.210:5555",
+        "host": "192.168.88.210",
+        "port": "5555"
+      }
+    ],
+    "app_presets": {},
+    "defaults_done": true,
+    "bars": {
+      "tools": [],
+      "console": [
+        {
+          "name": "logcat (300)",
+          "cmd": "logcat -d -t 300"
+        },
+        {
+          "name": "dmesg (хвост)",
+          "cmd": "dmesg | tail -200"
+        },
+        {
+          "name": "Процессы",
+          "cmd": "ps -A"
+        },
+        {
+          "name": "Сеть",
+          "cmd": "ip addr"
+        },
+        {
+          "name": "Диск",
+          "cmd": "df"
+        }
+      ],
+      "scripts": [
+        {
+          "name": "Сводка устройства (Python)",
+          "kind": "script",
+          "file": "сводка_устройства_python.py"
+        },
+        {
+          "name": "Закрыть пользовательские (Python)",
+          "kind": "script",
+          "file": "закрыть_пользовательские_python.py"
+        },
+        {
+          "name": "DIAG",
+          "kind": "script",
+          "file": "диагностика_кэс.py"
+        }
+      ],
+      "apps": [
+        {
+          "name": "Запустить",
+          "cmd": "monkey -p {pkg} -c android.intent.category.LAUNCHER 1",
+          "per_pkg": true
+        },
+        {
+          "name": "Закрыть (force-stop)",
+          "cmd": "am force-stop {pkg}",
+          "per_pkg": true
+        },
+        {
+          "name": "Очистить данные и кэш",
+          "cmd": "pm clear {pkg}",
+          "per_pkg": true
+        },
+        {
+          "name": "Удалить (user 0)",
+          "cmd": "pm uninstall -k --user 0 {pkg}",
+          "per_pkg": true
+        },
+        {
+          "name": "Отключить",
+          "cmd": "pm disable-user --user 0 {pkg}",
+          "per_pkg": true
+        },
+        {
+          "name": "Включить",
+          "cmd": "pm enable --user 0 {pkg}",
+          "per_pkg": true
+        },
+        {
+          "name": "Информация",
+          "cmd": "dumpsys package {pkg} | grep -E \"versionName|codePath|firstInstallTime\"",
+          "per_pkg": true
+        },
+        {
+          "name": "Закрыть все пользовательские",
+          "per_pkg": false,
+          "cmd": "for p in $(pm list packages -3 | cut -d \":\" -f2); do am force-stop $p; done; echo готово"
+        },
+        {
+          "name": "Удалить DPI",
+          "cmd": "pm uninstall {pkg}",
+          "per_pkg": true
+        },
+        {
+          "name": "YOUTUBE",
+          "cmd": "monkey -p com.google.android.youtube.tv -c android.intent.category.LAUNCHER 1",
+          "per_pkg": false
+        },
+        {
+          "name": "SMARTTUBE",
+          "cmd": "monkey -p org.smarttube.stable -c android.intent.category.LAUNCHER 1",
+          "per_pkg": false
+        },
+        {
+          "name": "ByeDPI",
+          "cmd": "monkey -p io.github.romanvht.byedpi -c android.intent.category.LAUNCHER 1",
+          "per_pkg": false
+        },
+        {
+          "name": "Настройки",
+          "cmd": "am start -a android.settings.SETTINGS",
+          "per_pkg": false
+        }
+      ]
+    },
+    "remotes": {
+      "Android TV (стандартный)": {
+        "buttons": [
+          {
+            "label": "◀◀",
+            "type": "keyevent",
+            "value": 82,
+            "x": 60,
+            "y": 17,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "▶▶",
+            "type": "keyevent",
+            "value": 258,
+            "x": 60,
+            "y": 17,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "◀",
+            "type": "keyevent",
+            "value": 96,
+            "x": 130,
+            "y": 17,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "▶",
+            "type": "keyevent",
+            "value": 244,
+            "x": 130,
+            "y": 17,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "↑",
+            "type": "keyevent",
+            "value": 170,
+            "x": 210,
+            "y": 30,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "↓",
+            "type": "keyevent",
+            "value": 170,
+            "x": 285,
+            "y": 30,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "OK",
+            "type": "keyevent",
+            "value": 170,
+            "x": 360,
+            "y": 38,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "menu",
+            "type": "keyevent",
+            "value": 55,
+            "x": 440,
+            "y": 18,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "back",
+            "type": "keyevent",
+            "value": 128,
+            "x": 440,
+            "y": 18,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "home",
+            "type": "keyevent",
+            "value": 205,
+            "x": 440,
+            "y": 18,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "info",
+            "type": "keyevent",
+            "value": 282,
+            "x": 440,
+            "y": 18,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "ch+",
+            "type": "keyevent",
+            "value": 108,
+            "x": 520,
+            "y": 17,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "ch-",
+            "type": "keyevent",
+            "value": 182,
+            "x": 520,
+            "y": 17,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "vol+",
+            "type": "keyevent",
+            "value": 64,
+            "x": 565,
+            "y": 16,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "vol-",
+            "type": "keyevent",
+            "value": 270,
+            "x": 565,
+            "y": 16,
+            "r": 24,
+            "color": "#243a55"
+          }
+        ]
+      },
+      "Tanix W2 (Android-приставка)": {
+        "buttons": [
+          {
+            "label": "◀◀",
+            "type": "keyevent",
+            "value": 82,
+            "x": 60,
+            "y": 17,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "Настр.",
+            "type": "keyevent",
+            "value": 176,
+            "x": 60,
+            "y": 17,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "◀",
+            "type": "keyevent",
+            "value": 96,
+            "x": 130,
+            "y": 17,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "▶",
+            "type": "keyevent",
+            "value": 244,
+            "x": 130,
+            "y": 17,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "↑",
+            "type": "keyevent",
+            "value": 170,
+            "x": 210,
+            "y": 30,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "↓",
+            "type": "keyevent",
+            "value": 170,
+            "x": 285,
+            "y": 30,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "OK",
+            "type": "keyevent",
+            "value": 170,
+            "x": 360,
+            "y": 38,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "menu",
+            "type": "keyevent",
+            "value": 55,
+            "x": 440,
+            "y": 18,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "back",
+            "type": "keyevent",
+            "value": 128,
+            "x": 440,
+            "y": 18,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "home",
+            "type": "keyevent",
+            "value": 205,
+            "x": 440,
+            "y": 18,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "info",
+            "type": "keyevent",
+            "value": 282,
+            "x": 440,
+            "y": 18,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "ch+",
+            "type": "keyevent",
+            "value": 108,
+            "x": 520,
+            "y": 17,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "ch-",
+            "type": "keyevent",
+            "value": 182,
+            "x": 520,
+            "y": 17,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "vol+",
+            "type": "keyevent",
+            "value": 64,
+            "x": 565,
+            "y": 16,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "vol-",
+            "type": "keyevent",
+            "value": 270,
+            "x": 565,
+            "y": 16,
+            "r": 24,
+            "color": "#243a55"
+          }
+        ]
+      },
+      "Eltex NV-731 (ТВ-пульт)": {
+        "buttons": [
+          {
+            "label": "◀◀",
+            "type": "keyevent",
+            "value": 82,
+            "x": 60,
+            "y": 17,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "▶▶",
+            "type": "keyevent",
+            "value": 258,
+            "x": 60,
+            "y": 17,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "◀",
+            "type": "keyevent",
+            "value": 96,
+            "x": 130,
+            "y": 17,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "▶",
+            "type": "keyevent",
+            "value": 244,
+            "x": 130,
+            "y": 17,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "↑",
+            "type": "keyevent",
+            "value": 170,
+            "x": 210,
+            "y": 30,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "↓",
+            "type": "keyevent",
+            "value": 170,
+            "x": 285,
+            "y": 30,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "OK",
+            "type": "keyevent",
+            "value": 170,
+            "x": 360,
+            "y": 38,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "menu",
+            "type": "keyevent",
+            "value": 55,
+            "x": 440,
+            "y": 18,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "back",
+            "type": "keyevent",
+            "value": 128,
+            "x": 440,
+            "y": 18,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "home",
+            "type": "keyevent",
+            "value": 205,
+            "x": 440,
+            "y": 18,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "info",
+            "type": "keyevent",
+            "value": 282,
+            "x": 440,
+            "y": 18,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "ch+",
+            "type": "keyevent",
+            "value": 108,
+            "x": 520,
+            "y": 17,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "ch-",
+            "type": "keyevent",
+            "value": 182,
+            "x": 520,
+            "y": 17,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "vol+",
+            "type": "keyevent",
+            "value": 64,
+            "x": 565,
+            "y": 16,
+            "r": 24,
+            "color": "#243a55"
+          },
+          {
+            "label": "vol-",
+            "type": "keyevent",
+            "value": 270,
+            "x": 565,
+            "y": 16,
+            "r": 24,
+            "color": "#243a55"
+          }
+        ]
+      }
+    },
+    "remote_current": "Android TV (стандартный)",
+    "cards": [
+      {
+        "id": "ram",
+        "title": "Оперативная память",
+        "parse": "nums_pct",
+        "a": 1,
+        "b": 0,
+        "div": 1024,
+        "unit": "МБ",
+        "max": 100,
+        "cmd": "awk '/^MemTotal/{t=$2}/^MemAvailable/{a=$2}END{print t, t-a}' /proc/meminfo"
+      },
+      {
+        "id": "disk",
+        "title": "Внутренняя память (/data)",
+        "parse": "nums_pct",
+        "a": 0,
+        "b": 1,
+        "div": 1024,
+        "unit": "МБ",
+        "max": 100,
+        "cmd": "df -k /data | tail -1 | awk '{print $3, $2}'"
+      },
+      {
+        "id": "cpu",
+        "title": "Процессор (CPU)",
+        "parse": "cpu",
+        "unit": "%",
+        "max": 100,
+        "cmd": "",
+        "div": 1
+      },
+      {
+        "id": "gpu",
+        "title": "Видеопроцессор (GPU)",
+        "parse": "number",
+        "idx": 0,
+        "div": 1,
+        "unit": "%",
+        "max": 100,
+        "cmd": "cat /sys/class/mpgpu/utilization"
+      },
+      {
+        "id": "temp",
+        "title": "Температура SoC",
+        "parse": "number",
+        "idx": 0,
+        "div": 1000,
+        "unit": "°C",
+        "max": 100,
+        "cmd": "cat /sys/class/thermal/thermal_zone0/temp"
+      },
+      {
+        "id": "load",
+        "title": "Нагрузка CPU (1 мин)",
+        "parse": "number",
+        "idx": 0,
+        "div": 1,
+        "unit": "",
+        "max": 0,
+        "cmd": "cat /proc/loadavg"
+      }
+    ],
+    "scrcpy": {
+      "max_size": "800",
+      "fps": "30",
+      "bitrate": "8M",
+      "codec": "h264",
+      "show_touches": false,
+      "stay_awake": true,
+      "screen_off": false
+    }
+  },
+  "scripts": {
+    "сводка_устройства_python.py": "print(\"Модель:\", adb.getprop(\"ro.product.model\"))\nprint(\"Android:\", adb.getprop(\"ro.build.version.release\"))\nprint(adb.shell(\"grep -E 'MemTotal|MemAvailable' /proc/meminfo\"))\n",
+    "закрыть_пользовательские_python.py": "apps = adb.packages(\"user\")\nprint(\"Пользовательских приложений:\", len(apps))\nfor pkg in apps:\n    adb.force_stop(pkg)\n    print(\"закрыто:\", pkg)\n",
+    "диагностика_кэс.py": "# -*- coding: utf-8 -*-\n\"\"\"\nДИАГНОСТИКА ТВ-ПРИСТАВКИ (замена tvdiag.sh) для КЭС ТВ-Менеджера.\n\nКак добавить: вкладка «Скрипты» -> «Импорт .py» -> выбрать этот файл -> «Сохранить».\nЗатем нажмите кнопку «Диагностика ТВ» (название можно поменять в редакторе).\nОтчёт появится в окне «Результат».\n\nЧто делает: отправляет на приставку ОДНУ пакетную команду (adb shell), получает\nсырые показания, разбирает их и печатает отчёт с предупреждениями.\nНа приставке ничего не меняет и ничего не записывает.\n\"\"\"\n\nimport datetime\nimport adb  # noqa: F401  -- предоставляется KES-TV-Manager при автономном запуске; локальная обёртка adb.py имитирует тот же интерфейс\n\n# Команды, которые выполняются на приставке. Каждая строка печатает \"@@ключ=значение\".\n# Строки объединяются через \"; \" и уходят одним вызовом adb shell.\nCOMMANDS = r'''\necho \"@@model=$(getprop ro.product.model)\"\necho \"@@devname=$(getprop ro.product.device)\"\necho \"@@odm=$(getprop ro.product.odm.model)\"\necho \"@@board=$(getprop ro.hardware)\"\necho \"@@soc=$(getprop ro.board.platform)\"\necho \"@@build=$(getprop ro.build.display.id)\"\necho \"@@tags=$(getprop ro.build.tags)\"\necho \"@@serial=$(getprop ro.serialno)\"\necho \"@@android=$(getprop ro.build.version.release)\"\necho \"@@sdk=$(getprop ro.build.version.sdk)\"\necho \"@@patch=$(getprop ro.build.version.security_patch)\"\necho \"@@date=$(date \"+%d.%m.%Y %H:%M:%S\")\"\necho \"@@uptime=$(cut -d \" \" -f1 /proc/uptime)\"\necho \"@@btime=$(awk \"/^btime/{print \\$2}\" /proc/stat)\"\necho \"@@memtotal=$(awk \"/^MemTotal/{print \\$2}\" /proc/meminfo)\"\necho \"@@memavail=$(awk \"/^MemAvailable/{print \\$2}\" /proc/meminfo)\"\necho \"@@cpupart=$(awk -F\": *\" \"/^CPU part/{print \\$2; exit}\" /proc/cpuinfo)\"\necho \"@@cpuimpl=$(awk -F\": *\" \"/^CPU implementer/{print \\$2; exit}\" /proc/cpuinfo)\"\necho \"@@cpucount=$(grep -c \"^processor\" /proc/cpuinfo)\"\necho \"@@online=$(cat /sys/devices/system/cpu/online 2>/dev/null)\"\necho \"@@cur0=$(cat /sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq 2>/dev/null)\"\necho \"@@min0=$(cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_min_freq 2>/dev/null)\"\necho \"@@max0=$(cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_max_freq 2>/dev/null)\"\necho \"@@gov0=$(cat /sys/devices/system/cpu/cpufreq/policy0/scaling_governor 2>/dev/null)\"\necho \"@@steps0=$(cat /sys/devices/system/cpu/cpufreq/policy0/scaling_available_frequencies 2>/dev/null)\"\necho \"@@affected0=$(cat /sys/devices/system/cpu/cpufreq/policy0/affected_cpus 2>/dev/null)\"\necho \"@@load=$(cat /proc/loadavg)\"\nfor z in /sys/class/thermal/thermal_zone*; do echo \"@@tz $(cat $z/type 2>/dev/null) $(cat $z/temp 2>/dev/null)\"; done\necho \"@@gpuinfo=$(head -1 /sys/class/misc/mali0/device/gpuinfo 2>/dev/null)\"\necho \"@@gpucur=$(head -1 /sys/class/mpgpu/cur_freq 2>/dev/null)\"\necho \"@@gpuutil=$(head -1 /sys/class/mpgpu/utilization 2>/dev/null)\"\necho \"@@gpuerr=$(head -1 /sys/class/mpgpu/gpu_err 2>/dev/null)\"\necho \"@@gpumem=$(awk \"/^mali0/{print \\$NF; exit}\" /sys/devices/platform/fe400000.bifrost/gpu_memory 2>/dev/null)\"\necho \"@@gles=$(dumpsys SurfaceFlinger 2>/dev/null | grep -m1 \"GLES:\" | cut -c1-100)\"\necho \"@@hpd=$(cat /sys/class/amhdmitx/amhdmitx0/hpd_state 2>/dev/null)\"\necho \"@@vmode=$(cat /sys/class/amhdmitx/amhdmitx0/valid_mode 2>/dev/null)\"\necho \"@@mode=$(cat /sys/class/display/mode 2>/dev/null)\"\necho \"@@natdisp=$(grep \"\\*\" /sys/class/amhdmitx/amhdmitx0/disp_cap 2>/dev/null | tr -d \"*\\r \")\"\necho \"@@pa=$(cat /sys/class/cec/physical_addr 2>/dev/null)\"\necho \"@@edid=$(cat /sys/class/amhdmitx/amhdmitx0/rawedid 2>/dev/null | tr -d \" \\n\\r\")\"\necho \"@@cec=$(settings get global hdmi_control_enabled 2>/dev/null)\"\necho \"@@autotime=$(settings get global auto_time 2>/dev/null)\"\necho \"@@vdec=$(dmesg 2>/dev/null | grep -c -E \"wait resource timeout|decoder timeout|frame number gap error\")\"\necho \"@@fserr=$(dmesg 2>/dev/null | grep -c -E \"EXT4-fs error|Remounting filesystem read-only|EXT4-fs.*I/O error\")\"\necho \"@@unclean=$(dmesg 2>/dev/null | grep -c -E \"not cleanly shutdown|orphan inodes deleted\")\"\necho \"@@therm=$(dmesg 2>/dev/null | grep -c -i -E \"thermal.*trip|over.temp\")\"\necho \"@@mmccrc=$(dmesg 2>/dev/null | grep -c \"meson-gx-mmc.*CRC\")\"\necho \"@@dmesgfirst=$(dmesg 2>/dev/null | head -1 | cut -c1-20)\"\necho \"@@logfirst=$(logcat -d 2>/dev/null | head -1 | cut -c1-18)\"\necho \"@@anr=$(logcat -d -t 500 \"*:E\" 2>/dev/null | grep -c -E \"ANR in|FATAL EXCEPTION|died\")\"\necho \"@@abort=$(logcat -d -t 500 \"*:E\" 2>/dev/null | grep -c -E \"Fatal signal 6|SIGABRT|assertion .* failed\")\"\necho \"@@underrun=$(logcat -d -t 500 2>/dev/null | grep -c underrun)\"\necho \"@@cecfail=$(logcat -d -t 300 2>/dev/null | grep -c \"Failed to send\")\"\necho \"@@reason=$(getprop sys.boot.reason)\"\necho \"@@reasonlast=$(getprop sys.boot.reason.last)\"\necho \"@@history=$(getprop persist.sys.boot.reason.history)\"\necho \"@@pstore=$(ls /sys/fs/pstore 2>/dev/null | grep -c .)\"\necho \"@@pstorepanic=$(grep -h -i -E \"Kernel panic|Unable to handle\" /sys/fs/pstore/* 2>/dev/null | head -1 | cut -c1-110)\"\necho \"@@freemb=$(df -k /data 2>/dev/null | awk \"NR==2{print int(\\$4/1024)}\")\"\necho \"@@totmb=$(df -k /data 2>/dev/null | awk \"NR==2{print int(\\$2/1024)}\")\"\necho \"@@netif=$(ip route get 8.8.8.8 2>/dev/null | awk \"{for(i=1;i<=NF;i++) if(\\$i==\\\"dev\\\"){print \\$(i+1); exit}}\")\"\necho \"@@ethspd=$(cat /sys/class/net/eth0/speed 2>/dev/null)\"\necho \"@@ethdup=$(cat /sys/class/net/eth0/duplex 2>/dev/null)\"\necho \"@@ethrx=$(cat /sys/class/net/eth0/statistics/rx_errors 2>/dev/null)\"\necho \"@@ethtx=$(cat /sys/class/net/eth0/statistics/tx_errors 2>/dev/null)\"\necho \"@@ethdrop=$(cat /sys/class/net/eth0/statistics/rx_dropped 2>/dev/null)\"\necho \"@@ethchg=$(cat /sys/class/net/eth0/carrier_changes 2>/dev/null)\"\necho \"@@ethcar=$(cat /sys/class/net/eth0/carrier 2>/dev/null)\"\necho \"@@rssi=$(dumpsys wifi 2>/dev/null | grep -m1 \"mWifiInfo\" | grep -o \"RSSI: -*[0-9]*\" | head -1)\"\necho \"@@dns1=$(getprop net.dns1)\"\necho \"@@dns2=$(getprop net.dns2)\"\nfor t in market:93.95.159.33 api:185.30.15.53 epg:93.95.152.11 cache1:93.95.158.1 cache2:93.95.158.2 acs:93.95.159.36; do echo \"@@ping ${t%%:*} ${t#*:} $(ping -c 1 -W 1 ${t#*:} 2>/dev/null | grep -o \"time=[0-9.]*\" | cut -d= -f2)\"; done\nfor h in android-market.eltex.local api-stb.zao-kes.ru eltex.local iptv.zao-kes.ru iptv-cache01.zao-kes.ru iptv-cache02.zao-kes.ru acs.ooo-kes.ru; do echo \"@@dns $h $(ping -c 1 -W 2 $h 2>/dev/null | head -1)\"; done\nps -A -o NAME,RSS 2>/dev/null | awk \"NR>1 && \\$2+0>0\" | sort -k2 -nr | head -6 | awk \"{print \\\"@@top \\\" \\$1 \\\" \\\" \\$2}\"\n'''\n\nCPU_PARTS = {\n    \"0xd01\": \"Cortex-A32\", \"0xd03\": \"Cortex-A53\", \"0xd04\": \"Cortex-A35\", \"0xd05\": \"Cortex-A55\",\n    \"0xd07\": \"Cortex-A57\", \"0xd08\": \"Cortex-A72\", \"0xd09\": \"Cortex-A73\", \"0xd0a\": \"Cortex-A75\",\n    \"0xd0b\": \"Cortex-A76\", \"0xd0d\": \"Cortex-A77\", \"0xd41\": \"Cortex-A78\",\n}\n\nEXPECTED_DNS = {\n    \"android-market.eltex.local\": \"93.95.159.33\", \"api-stb.zao-kes.ru\": \"185.30.15.53\",\n    \"eltex.local\": \"93.95.152.11\", \"iptv.zao-kes.ru\": \"93.95.152.11\",\n    \"iptv-cache01.zao-kes.ru\": \"93.95.158.1\", \"iptv-cache02.zao-kes.ru\": \"93.95.158.2\",\n    \"acs.ooo-kes.ru\": \"93.95.159.36\",\n}\n\nREASON_WORDS = [\n    (\"thermal\", \"перегрев\"), (\"watchdog\", \"зависание\"), (\"wdog\", \"зависание\"),\n    (\"panic\", \"паника ядра\"), (\"kernel\", \"паника ядра\"), (\"power\", \"проблема с питанием\"),\n    (\"battery\", \"проблема с питанием\"), (\"ota\", \"после обновления\"), (\"update\", \"после обновления\"),\n    (\"reboot\", \"обычная перезагрузка\"), (\"shutdown\", \"обычная перезагрузка\"),\n]\n\n\ndef reason_word(code):\n    if not code:\n        return \"неизвестно\"\n    for key, word in REASON_WORDS:\n        if key in code:\n            return word\n    return \"другое\"\n\n\ndef parse_output(raw):\n    kv, tops, pings, dns, tzs = {}, [], {}, {}, []\n    for line in raw.splitlines():\n        if not line.startswith(\"@@\"):\n            continue\n        body = line[2:]\n        parts = body.split(\" \")\n        if body.startswith(\"top \"):\n            if len(parts) >= 3:\n                tops.append((parts[1], parts[2]))\n        elif body.startswith(\"ping \"):\n            name = parts[1]\n            ip = parts[2] if len(parts) > 2 else \"\"\n            ms = parts[3] if len(parts) > 3 else \"\"\n            pings[name] = (ip, ms)\n        elif body.startswith(\"dns \"):\n            host = parts[1]\n            dns[host] = body\n        elif body.startswith(\"tz \"):\n            if len(parts) >= 3:\n                tzs.append((parts[1], parts[2]))\n        else:\n            key, _, value = body.partition(\"=\")\n            kv[key] = value\n    return kv, tops, pings, dns, tzs\n\n\ndef num(text, default=0):\n    try:\n        return int(float(text))\n    except (TypeError, ValueError):\n        return default\n\n\ndef temp_c(raw):\n    t = num(raw, -1)\n    if t <= 0:\n        return None\n    return t / 1000 if t > 1000 else float(t)\n\n\ndef mhz_from(raw):\n    \"\"\"Частота в Гц/кГц/МГц -> МГц (как в tvdiag).\"\"\"\n    v = num(raw, -1)\n    if v < 0:\n        return None\n    if v >= 1000000:\n        return v // 1000000\n    if v >= 1000:\n        return v // 1000\n    return v\n\n\ndef edid_model(hexs):\n    i = hexs.find(\"000000fc00\")\n    if i < 0:\n        return \"\"\n    body = hexs[i + 10:i + 10 + 26]\n    out = []\n    for j in range(0, len(body) - 1, 2):\n        b = int(body[j:j + 2], 16)\n        if b in (0x0A, 0x00):\n            break\n        if b == 0x20 and not out:\n            continue\n        out.append(chr(b))\n    return \"\".join(out).rstrip()\n\n\ndef parse_history(text):\n    \"\"\"История перезагрузок: 'причина[,подпричина],время' -> список (причина, время или None).\"\"\"\n    items, cur = [], []\n    for tok in text.split(\",\"):\n        if tok.isdigit() and len(tok) >= 5:\n            items.append((\",\".join(cur) or \"?\", int(tok)))\n            cur = []\n        elif tok:\n            cur.append(tok)\n    if cur:\n        items.append((\",\".join(cur), None))\n    return items\n\n\ndef fmt_ts(ts):\n    try:\n        return datetime.datetime.fromtimestamp(ts).strftime(\"%d.%m.%Y %H:%M:%S\")\n    except (OverflowError, OSError, ValueError):\n        return \"?\"\n\n\ndef build_report(raw):\n    kv, tops, pings, dns, tzs = parse_output(raw)\n    R, W = [], []\n\n    def head(title):\n        R.append(\"\")\n        R.append(f\"=== {title} ===\")\n\n    def row(text):\n        R.append(\"  \" + text)\n\n    def warn(text):\n        W.append(text)\n\n    # ---------------- устройство\n    head(\"УСТРОЙСТВО\")\n    row(f\"Модель: {kv.get('model') or 'н/д'} | Устройство: {kv.get('devname') or 'н/д'}\")\n    row(f\"Плата: {kv.get('board') or 'н/д'} | SoC: {kv.get('soc') or 'н/д'} | ODM: {kv.get('odm') or 'н/д'}\")\n    row(f\"Серийный номер: {kv.get('serial') or 'н/д'}\")\n    row(f\"Android {kv.get('android') or '?'} (SDK {kv.get('sdk') or '?'}) | Патч безопасности: {kv.get('patch') or 'н/д'}\")\n    row(f\"Сборка: {kv.get('build') or 'н/д'}\")\n    if \"test-keys\" in kv.get(\"tags\", \"\"):\n        row(\"test-keys: неофициальная прошивка\")\n\n    # ---------------- аптайм\n    head(\"АПТАЙМ\")\n    up = num(kv.get(\"uptime\"), 0)\n    row(f\"{up // 86400} д {up % 86400 // 3600} ч {up % 3600 // 60} мин | Старт: {fmt_ts(num(kv.get('btime'), 0))}\")\n\n    # ---------------- память\n    head(\"ПАМЯТЬ\")\n    total = num(kv.get(\"memtotal\")) // 1024\n    avail = num(kv.get(\"memavail\")) // 1024\n    row(f\"Всего: {total} МБ | Занято: {total - avail} МБ | Доступно: {avail} МБ\")\n    if tops:\n        row(\"Больше всего памяти (МБ):\")\n        for name, kb in tops:\n            row(f\"  {name[:40]}: {num(kb) // 1024}\")\n    if total and avail < 300:\n        warn(\"Мало оперативной памяти: доступно меньше 300 МБ\")\n\n    # ---------------- процессор\n    head(\"ПРОЦЕССОР\")\n    part = kv.get(\"cpupart\", \"\").strip()\n    impl = kv.get(\"cpuimpl\", \"\").strip()\n    row(f\"Модель: {CPU_PARTS.get(part, 'неизвестно')} ({impl or '?'} / {part or '?'})\")\n    row(f\"SoC: {kv.get('soc') or 'н/д'}\")\n    cores = num(kv.get(\"cpucount\"), 0)\n    row(f\"Ядер: {cores} | Онлайн CPU: {kv.get('online') or 'н/д'}\")\n    cur0 = mhz_from(kv.get(\"cur0\"))\n    row(f\"Текущая частота (cpu0): {cur0 if cur0 is not None else 'н/д'} МГц\")\n    mn, mx = mhz_from(kv.get(\"min0\")), mhz_from(kv.get(\"max0\"))\n    row(f\"Кластер CPU {kv.get('affected0') or '?'}: текущая {cur0 or '?'} МГц | \"\n        f\"диапазон {mn or '?'}..{mx or '?'} МГц | режим: {kv.get('gov0') or 'н/д'}\")\n    steps = [str(mhz_from(s)) for s in kv.get(\"steps0\", \"\").split() if mhz_from(s) is not None]\n    if steps:\n        row(\"Ступени частот, МГц: \" + \" \".join(steps))\n    load = kv.get(\"load\", \"\").split()\n    if len(load) >= 3:\n        row(f\"Нагрузка 1/5/15 мин: {load[0]} / {load[1]} / {load[2]}\")\n        if cores and float(load[0]) > cores:\n            warn(f\"Нагрузка CPU выше числа ядер ({load[0]} при {cores} ядрах)\")\n\n    # ---------------- температура\n    head(\"ТЕМПЕРАТУРА\")\n    soc_t, gpu_t = None, None\n    for ztype, zraw in tzs:\n        t = temp_c(zraw)\n        if t is None:\n            continue\n        low = ztype.lower()\n        if soc_t is None and any(k in low for k in (\"cpu\", \"soc\", \"tsens\", \"aoss\")):\n            soc_t = t\n        if gpu_t is None and any(k in low for k in (\"gpu\", \"mali\")):\n            gpu_t = t\n    row(f\"SoC: {soc_t:.1f} C\" if soc_t is not None else \"SoC: н/д\")\n    if soc_t is not None:\n        if soc_t > 85:\n            warn(f\"Перегрев SoC: {soc_t:.1f} C, проверьте вентиляцию\")\n        elif soc_t > 75:\n            warn(f\"SoC горячий: {soc_t:.1f} C\")\n\n    # ---------------- GPU\n    head(\"ГРАФИЧЕСКИЙ ПРОЦЕССОР (GPU)\")\n    row(f\"GPU: {kv.get('gpuinfo') or 'н/д'}\")\n    gcur = mhz_from(kv.get(\"gpucur\"))\n    row(f\"Частота: {gcur if gcur is not None else 'н/д'} МГц\")\n    util = num(kv.get(\"gpuutil\"), -1)\n    row(f\"Нагрузка GPU: {util if util >= 0 else 'н/д'} %\")\n    gerr = num(kv.get(\"gpuerr\"), -1)\n    row(f\"Ошибки GPU (gpu_err): {gerr if gerr >= 0 else 'н/д'}\")\n    pages = num(kv.get(\"gpumem\"), -1)\n    if pages >= 0:\n        row(f\"Память GPU: {pages * 4 // 1024} МБ\")\n    if kv.get(\"gles\"):\n        row(f\"OpenGL ES: {kv['gles']}\")\n    if util > 80:\n        warn(f\"Нагрузка GPU {util} %\")\n    if gerr > 0:\n        warn(f\"Ошибки GPU: {gerr}\")\n    if gpu_t is not None and gpu_t > 75:\n        warn(f\"GPU горячий: {gpu_t:.1f} C\")\n\n    # ---------------- HDMI / CEC\n    head(\"HDMI / CEC\")\n    cec = kv.get(\"cec\", \"\").strip()\n    row(f\"Состояние CEC: {'включён' if cec == '1' else 'выключен'}\")\n    if kv.get(\"hpd\", \"\").strip() == \"1\":\n        row(\"ТВ подключён: да\")\n        model = edid_model(kv.get(\"edid\", \"\").replace(\" \", \"\"))\n        row(f\"Модель ТВ: {model or 'н/д'}\")\n        if model[:3] in (\"AAA\", \"XXX\") or model.startswith(\"Digital\"):\n            warn(\"Модель ТВ не определена (заглушка EDID): переподключите ТВ по HDMI\")\n        row(f\"Родной режим: {kv.get('natdisp') or 'н/д'} | Режим вывода: {kv.get('mode') or 'н/д'}\")\n        edid = kv.get(\"edid\", \"\").strip().lower()\n        if edid and not edid.startswith(\"00ffffffffffff00\"):\n            warn(\"EDID повреждён: проверьте кабель HDMI и DDC\")\n        elif kv.get(\"vmode\", \"\").strip() == \"1\":\n            row(\"HDMI работает\")\n        if \"cvbs\" in kv.get(\"mode\", \"\"):\n            warn(\"Вывод идёт по CVBS, а не по HDMI\")\n        pa = kv.get(\"pa\", \"\").strip()\n        if pa and pa[0] != \"f\":\n            row(f\"Порт HDMI на ТВ: HDMI {pa[0]}\")\n        else:\n            row(\"Порт HDMI на ТВ: не определён\")\n        if num(kv.get(\"cecfail\"), 0) > 3:\n            warn(f\"ТВ не отвечает по CEC ({kv.get('cecfail')} ошибок)\")\n    else:\n        row(\"ТВ не подключён или выключен\")\n        row(f\"Режим вывода: {kv.get('mode') or 'н/д'}\")\n\n    # ---------------- ядро\n    head(\"ЯДРО / ДРАЙВЕРЫ\")\n    vdec = num(kv.get(\"vdec\"))\n    fserr = num(kv.get(\"fserr\"))\n    unclean = num(kv.get(\"unclean\"))\n    mmccrc = num(kv.get(\"mmccrc\"))\n    row(f\"Декодер видео: сбои: {vdec}\")\n    row(f\"Ошибки файловой системы (ext4): {fserr}\")\n    if unclean > 0:\n        row(\"Предыдущее выключение не штатное (файловая система восстанавливалась)\")\n        warn(\"Предыдущее выключение не штатное: файловая система восстанавливалась\")\n    row(f\"eMMC CRC: {mmccrc}\")\n    if vdec > 5:\n        warn(f\"Сбои декодера видео: {vdec}\")\n    if fserr > 0:\n        warn(f\"Ошибки файловой системы ext4: {fserr}\")\n    if mmccrc > 0:\n        warn(f\"Ошибки CRC eMMC: {mmccrc}\")\n    if num(kv.get(\"therm\")) > 0:\n        warn(f\"Термические события в ядре: {kv.get('therm')}\")\n\n    # ---------------- хранилище\n    head(\"ХРАНИЛИЩЕ (/data)\")\n    free, tot = num(kv.get(\"freemb\"), -1), num(kv.get(\"totmb\"), -1)\n    if free >= 0 and tot > 0:\n        row(f\"Свободно: {free} МБ из {tot} МБ\")\n        if free < 500:\n            warn(f\"Мало места на /data: {free} МБ\")\n    else:\n        row(\"Свободно: н/д\")\n\n    # ---------------- сеть\n    head(\"СЕТЬ\")\n    iface = kv.get(\"netif\", \"\").strip()\n    row(f\"Интерфейс: {iface or 'нет маршрута'}\")\n    if iface == \"eth0\":\n        spd = kv.get(\"ethspd\", \"?\") or \"?\"\n        dup = kv.get(\"ethdup\", \"?\") or \"?\"\n        rx, tx = num(kv.get(\"ethrx\")), num(kv.get(\"ethtx\"))\n        drop = num(kv.get(\"ethdrop\"))\n        chg = num(kv.get(\"ethchg\"))\n        carrier = kv.get(\"ethcar\", \"\").strip()\n        drops = (chg + 1) // 2 if carrier == \"0\" else chg // 2\n        row(f\"Тип: Ethernet | Скорость: {spd} Мбит/с | Дуплекс: {dup}\")\n        row(f\"Ошибки rx/tx: {rx}/{tx} | Отброшено пакетов (rx): {drop}\")\n        row(f\"Падения линка (с загрузки): {drops} | Линк сейчас: {'есть' if carrier == '1' else 'НЕТ'}\")\n        if dup == \"half\":\n            warn(\"Ethernet работает в полудуплексе: проверьте кабель и порт\")\n        if rx or tx:\n            warn(f\"Ошибки Ethernet: rx {rx}, tx {tx}\")\n        if carrier != \"1\":\n            warn(\"Нет линка Ethernet\")\n    elif iface == \"wlan0\":\n        rssi_text = kv.get(\"rssi\", \"\")\n        row(f\"Тип: Wi-Fi | {rssi_text or 'RSSI: н/д'}\")\n        rssi = num(rssi_text.replace(\"RSSI:\", \"\").strip(), 0) if rssi_text else 0\n        if rssi and rssi < -70:\n            warn(f\"Слабый Wi-Fi: {rssi} dBm\")\n    else:\n        warn(\"Нет маршрута в сеть\")\n\n    # ---------------- серверы провайдера\n    head(\"СЕРВЕРЫ ПРОВАЙДЕРА (ping по IP)\")\n    for name in (\"market\", \"api\", \"epg\", \"cache1\", \"cache2\", \"acs\"):\n        ip, ms = pings.get(name, (\"?\", \"\"))\n        if ms:\n            row(f\"{name:<8} {ip:<15} OK   {ms} мс\")\n        else:\n            row(f\"{name:<8} {ip:<15} НЕТ ОТВЕТА\")\n            warn(f\"Нет связи с сервером {name} ({ip})\")\n\n    # ---------------- DNS\n    head(\"DNS\")\n    row(f\"DNS-серверы: {kv.get('dns1') or 'н/д'} {kv.get('dns2') or ''}\".rstrip())\n    import re\n    for host, expected in EXPECTED_DNS.items():\n        line = dns.get(host, \"\")\n        m = re.search(r\"\\((\\d+\\.\\d+\\.\\d+\\.\\d+)\\)\", line)\n        if not m:\n            row(f\"{host:<30} -> НЕ РАЗРЕШАЕТСЯ\")\n            warn(f\"DNS не разрешает имя: {host}\")\n        elif m.group(1) == expected:\n            row(f\"{host:<30} -> {m.group(1)}  OK\")\n        else:\n            row(f\"{host:<30} -> {m.group(1)}  (ожидался {expected})\")\n            warn(f\"DNS вернул неверный IP для {host}\")\n\n    # ---------------- время\n    head(\"ВРЕМЯ\")\n    row(f\"Время на приставке: {kv.get('date') or 'н/д'} | Автовремя: {kv.get('autotime') or 'н/д'}\")\n    year = num((kv.get(\"date\") or \"\")[-4:], 0)\n    if year and year < 2025:\n        warn(f\"Неверные часы приставки ({year} год)\")\n\n    # ---------------- логи\n    head(\"ПОКРЫТИЕ ЛОГОВ\")\n    dmesg_first = kv.get(\"dmesgfirst\", \"\")\n    m = re.search(r\"\\[\\s*([\\d.]+)\\]\", dmesg_first)\n    row(f\"dmesg покрывает с {m.group(1) if m else '?'} с\")\n    row(f\"logcat покрывает с {kv.get('logfirst') or '?'}\")\n\n    head(\"ОШИБКИ В ЖУРНАЛЕ (последние записи)\")\n    anr, abort, under = num(kv.get(\"anr\")), num(kv.get(\"abort\")), num(kv.get(\"underrun\"))\n    row(f\"Записей о сбоях (ANR / FATAL): {anr}\")\n    row(f\"Падения приложений (native abort): {abort}\")\n    row(f\"Аудио underrun: {under}\")\n    if anr > 5:\n        warn(f\"Много ANR / FATAL EXCEPTION: {anr}\")\n    if abort > 0:\n        warn(f\"Падения приложений native abort: {abort}\")\n    if under > 5:\n        warn(f\"Аудио underrun: {under}\")\n\n    # ---------------- предыдущие выключения\n    head(\"ПРЕДЫДУЩИЕ ВЫКЛЮЧЕНИЯ\")\n    row(f\"Включение (старт текущей сессии): {fmt_ts(num(kv.get('btime'), 0))}\")\n    cur = kv.get(\"reason\", \"\")\n    last = kv.get(\"reasonlast\", \"\")\n    row(f\"Причина текущего включения: {reason_word(cur)}  [{cur or 'нет'}]\")\n    row(f\"Причина предыдущего выключения: {reason_word(last)}  [{last or 'нет'}]\")\n    if \"thermal\" in last:\n        warn(\"Предыдущее выключение: перегрев\")\n    history = kv.get(\"history\", \"\")\n    row(\"История перезагрузок (время, причина):\")\n    if history:\n        for reason, ts in parse_history(history):\n            when = fmt_ts(ts) if ts else \"?\"\n            row(f\"  {when}  {reason}\")\n        row(\"(время записи верно только при включённом автовремени)\")\n        if \"kernel_panic\" in history:\n            warn(\"В истории перезагрузок есть паника ядра\")\n        if \"ext4\" in history:\n            warn(\"В истории перезагрузок есть ошибка файловой системы ext4\")\n    else:\n        row(\"  нет\")\n    pstore = num(kv.get(\"pstore\"), 0)\n    if pstore == 0:\n        row(\"Записи паники ядра (pstore): записей нет\")\n    else:\n        row(f\"Записи паники ядра (pstore): есть ({pstore})\")\n        if kv.get(\"pstorepanic\"):\n            row(\"  \" + kv[\"pstorepanic\"])\n            warn(\"В pstore есть запись паники ядра\")\n\n    # ---------------- итог\n    head(\"ПРЕДУПРЕЖДЕНИЯ\")\n    if W:\n        for text in W:\n            row(\"! \" + text)\n    else:\n        row(\"нет\")\n    return R, W\n\n\ndef main():\n    print(\"Диагностика ТВ: запрашиваю показания у приставки...\")\n    raw = adb.shell(COMMANDS, timeout=180)\n    report, warnings = build_report(raw)\n    print(\"=\" * 38)\n    print(\" Диагностика ТВ  \" + datetime.datetime.now().strftime(\"%H:%M:%S\") +\n          f\"  |  предупреждений: {len(warnings)}\")\n    print(\"=\" * 38)\n    print(\"\\n\".join(report).lstrip(\"\\n\"))\n\n\nmain()\n"
+  },
+  "programs": []
+}
