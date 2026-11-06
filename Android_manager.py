@@ -3385,9 +3385,14 @@ class App(tk.Tk):
         def script_print(*args, sep=" ", end="\n", **kwargs):
             q.put(sep.join(str(a) for a in args) + end)
 
-        namespace = {"adb": api, "print": script_print, "sleep": api.sleep,
-                     "time": time, "json": json, "re": re, "os": os,
-                     "__adb_api__": api}
+        # Создаём модуль adb с привязанной shell функцией
+        import types
+        adb_module = types.ModuleType("adb")
+        adb_module.shell = api.shell
+        # Кладем в namespace и sys.modules, чтобы import adb работал
+        namespace = {"adb": adb_module, "print": script_print, "sleep": api.sleep,
+                     "time": time, "json": json, "re": re, "os": os}
+        sys.modules["adb"] = adb_module
 
         def job():
             import sys
