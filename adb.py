@@ -10,7 +10,7 @@ tvdiag_report.py.
 import os
 import subprocess
 
-_ADB_EXE = r"C:\Users\kivin\AppData\Local\KES-TV-Manager\tools\adb\adb.exe"
+_ADB_EXE = r"C:\Users\kivin\AppData\Local\Android-manager\tools\adb\adb.exe"
 
 
 def shell(commands, timeout=180):
