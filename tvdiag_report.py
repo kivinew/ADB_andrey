@@ -89,7 +89,7 @@ echo "@@rssi=$(dumpsys wifi 2>/dev/null | grep -m1 "mWifiInfo" | grep -o "RSSI: 
 echo "@@dns1=$(getprop net.dns1)"
 echo "@@dns2=$(getprop net.dns2)"
 for t in market:93.95.159.33 api:185.30.15.53 epg:93.95.152.11 cache1:93.95.158.1 cache2:93.95.158.2 acs:93.95.159.36; do echo "@@ping ${t%%:*} ${t#*:} $(ping -c 1 -W 1 ${t#*:} 2>/dev/null | grep -o "time=[0-9.]*" | cut -d= -f2)"; done
-for h in android-market.eltex.local api-stb.zao-kes.ru eltex.local iptv.zao-kes.ru iptv-cache01.zao-kes.ru iptv-cache02.zao-kes.ru acs.ooo-kes.ru; do echo "@@dns $h $(ping -c 1 -W 2 $h 2>/dev/null | head -1)"; done
+for h in android-market.eltex.local api-stb.example.com eltex.local iptv.example.com iptv-cache01.example.com iptv-cache02.example.com acs.example.com; do echo "@@dns $h $(ping -c 1 -W 2 $h 2>/dev/null | head -1)"; done
 ps -A -o NAME,RSS 2>/dev/null | awk "NR>1 && \$2+0>0" | sort -k2 -nr | head -6 | awk "{print \"@@top \" \$1 \" \" \$2}"
 '''
 
@@ -100,10 +100,10 @@ CPU_PARTS = {
 }
 
 EXPECTED_DNS = {
-    "android-market.eltex.local": "93.95.159.33", "api-stb.zao-kes.ru": "185.30.15.53",
-    "eltex.local": "93.95.152.11", "iptv.zao-kes.ru": "93.95.152.11",
-    "iptv-cache01.zao-kes.ru": "93.95.158.1", "iptv-cache02.zao-kes.ru": "93.95.158.2",
-    "acs.ooo-kes.ru": "93.95.159.36",
+    "android-market.eltex.local": "93.95.159.33", "api-stb.example.com": "185.30.15.53",
+    "eltex.local": "93.95.152.11", "iptv.example.com": "93.95.152.11",
+    "iptv-cache01.example.com": "93.95.158.1", "iptv-cache02.example.com": "93.95.158.2",
+    "acs.example.com": "93.95.159.36",
 }
 
 REASON_WORDS = [

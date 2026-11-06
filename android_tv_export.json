@@ -47,10 +47,10 @@
           "file": "закрыть_пользовательские_python.py"
         },
         {
-          "name": "DIAG",
-          "kind": "script",
-          "file": "диагностика_кэс.py"
-        }
+                  "name": "DIAG",
+                  "kind": "script",
+                  "file": "диагностика_android.py"
+                }
       ],
       "apps": [
         {

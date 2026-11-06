@@ -3,7 +3,7 @@
 """
 Установщик Android ТВ-Менеджера v1.5 для Windows 8.1 / 10 / 11 (один файл).
 
-Запуск: двойной клик по файлу или  python install_kes_v7.py
+Запуск: двойной клик по файлу или  python Android_manager.py
 Нажмите «Установить». Ничего копировать и готовить заранее не нужно.
 
 Что делает:
@@ -1430,25 +1430,25 @@ class App(tk.Tk):
         save_settings(self.S)
 
     def connect(self):
-        host, port = split_target(self.host_var.get(), self.port_var.get() or "5555")
-        if not host:
-            self.log("Введите IP или URL, например acs.ooo-kes.ru")
-            return
-        if not port.isdigit() or not 1 <= int(port) <= 65535:
-            self.log(f"Некорректный порт: «{port}». Введите число от 1 до 65535")
-            return
+            host, port = split_target(self.host_var.get(), self.port_var.get() or "5555")
+            if not host:
+                self.log("Введите IP или URL, например example.com")
+                return
+            if not port.isdigit() or not 1 <= int(port) <= 65535:
+                self.log(f"Некорректный порт: «{port}». Введите число от 1 до 65535")
+                return
 
-        def job():
-            self.log(f"[DEBUG] ADB path: {ADB}")
-            self.log(f"[DEBUG] Resolving host: {host}")
-            ip = host if IP_RE.fullmatch(host) else socket.gethostbyname(host)
-            target = f"{ip}:{port}"
-            self.log(f"[DEBUG] Running: adb connect {target}")
-            _, o, e = run([ADB, "connect", target], 20)
-            self.log(f"[DEBUG] adb connect result: rc={_}, out={o}, err={e}")
-            return target, (o + e).strip()
+            def job():
+                self.log(f"[DEBUG] ADB path: {ADB}")
+                self.log(f"[DEBUG] Resolving host: {host}")
+                ip = host if IP_RE.fullmatch(host) else socket.gethostbyname(host)
+                target = f"{ip}:{port}"
+                self.log(f"[DEBUG] Running: adb connect {target}")
+                _, o, e = run([ADB, "connect", target], 20)
+                self.log(f"[DEBUG] adb connect result: rc={_}, out={o}, err={e}")
+                return target, (o + e).strip()
 
-        def done(res):
+            def done(res):
             if isinstance(res, Exception):
                 self.log(f"Не удалось подключиться: {res}")
                 return
