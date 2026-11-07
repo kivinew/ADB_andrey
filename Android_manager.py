@@ -86,7 +86,8 @@ class Tooltip:
 
 
 def tooltip_btn(btn, text):
-    return Tooltip(btn, text)
+    Tooltip(btn, text)
+    return btn
 
 
 
@@ -178,7 +179,8 @@ class Tooltip:
 
 
 def tooltip_btn(btn, text):
-    return Tooltip(btn, text)
+    Tooltip(btn, text)
+    return btn
 
 PALETTE = ["#5aa9f0", "#c49bff", "#7fd68f", "#ffb347", "#ff7b7b", "#7fd0ff", "#e6d26b", "#9fb4cc"]
 
@@ -1044,14 +1046,20 @@ class RemoteWindow(tk.Toplevel):
         self.box = ttk.Combobox(head, textvariable=app.remote_var, state="readonly", width=28)
         head.add(self.box)
         self.box.bind("<<ComboboxSelected>>", lambda e: app.remote_select(app.remote_var.get()))
-        self.edit_btn = ttk.Button(head, text="Редактировать: " + ("вкл" if app.remote_edit else "выкл"),
-                                   command=app.remote_toggle_edit)
+        self.edit_btn = tooltip_btn(ttk.Button(head, text="Редактировать: " + ("вкл" if app.remote_edit else "выкл"),
+                                   command=app.remote_toggle_edit),
+                           "Включить/выключить режим редактирования кнопок пульта")
         head.add(self.edit_btn)
-        head.add(ttk.Button(head, text="+ Кнопка", command=app.remote_add_button))
-        head.add(ttk.Button(head, text="Новый пульт", command=app.remote_new))
-        head.add(ttk.Button(head, text="Копия", command=app.remote_copy))
-        head.add(ttk.Button(head, text="Переименовать", command=app.remote_rename))
-        head.add(ttk.Button(head, text="Удалить пульт", command=app.remote_delete))
+        head.add(tooltip_btn(ttk.Button(head, text="+ Кнопка", command=app.remote_add_button),
+                           "Добавить новую кнопку на пульт"))
+        head.add(tooltip_btn(ttk.Button(head, text="Новый пульт", command=app.remote_new),
+                           "Создать новый пульт"))
+        head.add(tooltip_btn(ttk.Button(head, text="Копия", command=app.remote_copy),
+                           "Создать копию текущего пульта"))
+        head.add(tooltip_btn(ttk.Button(head, text="Переименовать", command=app.remote_rename),
+                           "Переименовать текущий пульт"))
+        head.add(tooltip_btn(ttk.Button(head, text="Удалить пульт", command=app.remote_delete),
+                           "Удалить текущий пульт"))
         self.canvas = tk.Canvas(self, bg=C["bg"], highlightthickness=0)
         self.canvas.pack(fill="both", expand=True, padx=4, pady=(0, 4))
         self.canvas.bind("<Configure>", lambda e: self.draw())
@@ -1238,8 +1246,10 @@ class App(tk.Tk):
         box.insert("1.0", text if text.strip() else "(пустой ответ)")
         bar = FlowFrame(win, gap=6)
         bar.pack(fill="x", padx=8, pady=(0, 8))
-        bar.add(ttk.Button(bar, text="Копировать", command=lambda: self.copy_text(text)))
-        bar.add(ttk.Button(bar, text="Закрыть", style="Accent.TButton", command=win.destroy))
+        bar.add(tooltip_btn(ttk.Button(bar, text="Копировать", command=lambda: self.copy_text(text)),
+                           "Скопировать текст в буфер обмена"))
+        bar.add(tooltip_btn(ttk.Button(bar, text="Закрыть", style="Accent.TButton", command=win.destroy),
+                           "Закрыть окно"))
         win.bind("<Escape>", lambda e: win.destroy())
 
     def copy_text(self, text):
@@ -1345,16 +1355,21 @@ class App(tk.Tk):
         self.port_var = tk.StringVar(value="5555")
         self.port_var.trace_add("write", self._fix_port)
         bar.add(ttk.Entry(bar, textvariable=self.port_var, width=7))
-        bar.add(ttk.Button(bar, text="Подключить", style="Accent.TButton", command=self.connect))
-        bar.add(ttk.Button(bar, text="Отключить", command=self.disconnect))
-        bar.add(ttk.Button(bar, text="Сопрячь", command=self.pair_dialog))
-        self.hist_btn = bar.add(ttk.Button(bar, text="История ▾", command=self.history_menu))
-        self.fav_btn = bar.add(ttk.Button(bar, text="Избранное ▾", command=self.favorites_menu))
+        self.toggle_btn = tooltip_btn(ttk.Button(bar, text="Подключить", style="Accent.TButton", command=self.toggle_connection),
+                           "Подключиться к устройству по IP:порт (adb connect)")
+        bar.add(self.toggle_btn)
+        bar.add(tooltip_btn(ttk.Button(bar, text="Сопрячь", command=self.pair_dialog),
+                           "Сопрячь устройство по Wi-Fi (adb pair) — для Android 11+"))
+        self.hist_btn = bar.add(tooltip_btn(ttk.Button(bar, text="История ▾", command=self.history_menu),
+                           "История подключений — быстрый выбор IP"))
+        self.fav_btn = bar.add(tooltip_btn(ttk.Button(bar, text="Избранное ▾", command=self.favorites_menu),
+                           "Избранные устройства — сохранённые IP для быстрого доступа"))
         bar.add(ttk.Label(bar, text="Устройство:"))
         self.dev_box = ttk.Combobox(bar, textvariable=self.serial, width=26, state="readonly")
         bar.add(self.dev_box)
         self.dev_box.bind("<<ComboboxSelected>>", lambda e: self.device_info())
-        bar.add(ttk.Button(bar, text="Обновить", command=self.refresh_devices))
+        bar.add(tooltip_btn(ttk.Button(bar, text="Обновить", command=self.refresh_devices),
+                           "Обновить список подключённых устройств (adb devices -l)"))
 
         nb = ttk.Notebook(self)
         nb.pack(fill="both", expand=True, padx=6, pady=4)
@@ -1375,8 +1390,10 @@ class App(tk.Tk):
         Tooltip(f, "Журнал действий программы: копировать или очистить")
         row = FlowFrame(f, gap=6)
         row.pack(fill="x")
-        row.add(ttk.Button(row, text="Копировать всё", command=lambda: self.copy_text(self.out.get("1.0", "end").rstrip())))
-        row.add(ttk.Button(row, text="Очистить", command=lambda: self.out.delete("1.0", "end")))
+        row.add(tooltip_btn(ttk.Button(row, text="Копировать всё", command=lambda: self.copy_text(self.out.get("1.0", "end").rstrip())),
+                           "Скопировать весь лог в буфер обмена"))
+        row.add(tooltip_btn(ttk.Button(row, text="Очистить", command=lambda: self.out.delete("1.0", "end")),
+                           "Очистить лог"))
         self.out = scrolledtext.ScrolledText(f, bg=C["term"], fg=C["text"], insertbackground=C["text"],
                                              font=("Consolas", 10), relief="flat", wrap="word")
         self.out.pack(fill="both", expand=True, pady=(6, 0))
@@ -1449,16 +1466,16 @@ class App(tk.Tk):
                 return target, (o + e).strip()
 
             def done(res):
-            if isinstance(res, Exception):
-                self.log(f"Не удалось подключиться: {res}")
-                return
-            target, msg = res
-            self.log(f"{target}: {msg}")
-            self._remember(target)
-            self.refresh_devices(select=target)
+                if isinstance(res, Exception):
+                    self.log(f"Не удалось подключиться: {res}")
+                    return
+                target, msg = res
+                self.log(f"{target}: {msg}")
+                self._remember(target)
+                self.refresh_devices(select=target)
 
-        self.log(f"Подключение к {host}:{port}...")
-        self.bg(job, done)
+            self.log(f"Подключение к {host}:{port}...")
+            self.bg(job, done)
 
     def disconnect(self):
         s = self.serial.get().strip()
@@ -1467,6 +1484,16 @@ class App(tk.Tk):
             return
         self.bg(lambda: run([ADB, "disconnect", s], 15),
                 lambda res: (self.log((res[1] + res[2]).strip() or "Отключено"), self.refresh_devices()))
+
+    def toggle_connection(self):
+        """Переключает состояние подключения: подключить/отключить."""
+        s = self.serial.get().strip()
+        if s and ":" in s:
+            # Устройство подключено -> отключить
+            self.disconnect()
+        else:
+            # Нет подключения -> подключить
+            self.connect()
 
     def pair_dialog(self):
         vals = self.ask_fields("Сопряжение", ["Адрес", "Порт сопряжения", "Код"],
@@ -1505,8 +1532,21 @@ class App(tk.Tk):
                 self.log((out + err).strip())
             self.device_info()
             self.load_caches()
+            self._update_toggle_button()
 
         self.bg(job, done)
+
+    def _update_toggle_button(self):
+        """Обновляет текст и tooltip кнопки переключения подключения."""
+        if hasattr(self, 'toggle_btn') and self.toggle_btn:
+            s = self.serial.get().strip()
+            if s and ":" in s:
+                self.toggle_btn.config(text="Отключить")
+                # Обновляем tooltip через Tooltip объект (если есть доступ)
+                # Tooltip создается в tooltip_btn, но мы не сохраняем ссылку
+                # Поэтому просто меняем текст кнопки
+            else:
+                self.toggle_btn.config(text="Подключить")
 
     def device_info(self):
         s = self.serial.get().strip()
@@ -1741,10 +1781,13 @@ class App(tk.Tk):
 
             btns = ttk.Frame(frm)
             btns.grid(row=4, column=0, columnspan=2, pady=12)
-            ttk.Button(btns, text="Сохранить", command=save).pack(side="left", padx=4)
+            tooltip_btn(ttk.Button(btns, text="Сохранить", command=save),
+                           "Сохранить изменения").pack(side="left", padx=4)
             if idx is not None:
-                ttk.Button(btns, text="Удалить", command=delete).pack(side="left", padx=4)
-            ttk.Button(btns, text="Отмена", command=win.destroy).pack(side="left", padx=4)
+                tooltip_btn(ttk.Button(btns, text="Удалить", command=delete),
+                           "Удалить кнопку").pack(side="left", padx=4)
+            tooltip_btn(ttk.Button(btns, text="Отмена", command=win.destroy),
+                           "Отменить без сохранения").pack(side="left", padx=4)
             win.wait_window()
             return
 
@@ -1801,9 +1844,12 @@ class App(tk.Tk):
         bar = FlowFrame(frm, gap=6)
         bar.grid(row=3, column=0, columnspan=2, sticky="we")
         if can_delete:
-            bar.add(ttk.Button(bar, text="Удалить", command=delete))
-        bar.add(ttk.Button(bar, text="Сохранить", style="Accent.TButton", command=ok))
-        bar.add(ttk.Button(bar, text="Отмена", command=win.destroy))
+            bar.add(tooltip_btn(ttk.Button(bar, text="Удалить", command=delete),
+                           "Удалить элемент"))
+        bar.add(tooltip_btn(ttk.Button(bar, text="Сохранить", style="Accent.TButton", command=ok),
+                           "Сохранить изменения"))
+        bar.add(tooltip_btn(ttk.Button(bar, text="Отмена", command=win.destroy),
+                           "Отменить без сохранения"))
         win.bind("<Escape>", lambda e: win.destroy())
         win.grab_set()
         win.wait_window()
@@ -1843,7 +1889,8 @@ class App(tk.Tk):
         top.add(ttk.Combobox(top, textvariable=self.filter_var, state="readonly", width=16,
                              values=["Все", "Пользовательские", "Системные", "Отключённые"]))
         self.filter_var.trace_add("write", lambda *a: self.fill_apps())
-        top.add(ttk.Button(top, text="Обновить список", command=self.load_apps))
+        top.add(tooltip_btn(ttk.Button(top, text="Обновить список", command=self.load_apps),
+                           "Обновить список пакетов с устройства"))
         self.search_var = tk.StringVar()
         self.search_var.trace_add("write", lambda *a: self.fill_apps())
         top.add(ttk.Entry(top, textvariable=self.search_var, width=26))
@@ -1879,8 +1926,10 @@ class App(tk.Tk):
         self.preset_var = tk.StringVar()
         self.preset_box = ttk.Combobox(pres_row, textvariable=self.preset_var, state="readonly", width=26)
         self.preset_box.pack(side="left", padx=(0, 6))
-        ttk.Button(pres_row, text="Загрузить пресет", command=self.preset_load).pack(side="left", padx=(0, 6))
-        ttk.Button(pres_row, text="Сохранить выбранные как пресет", command=self.preset_save).pack(side="left")
+        tooltip_btn(ttk.Button(pres_row, text="Загрузить пресет", command=self.preset_load),
+                           "Применить сохранённый набор действий к выбранным пакетам").pack(side="left", padx=(0, 6))
+        tooltip_btn(ttk.Button(pres_row, text="Сохранить выбранные как пресет", command=self.preset_save),
+                           "Сохранить текущий выбор пакетов как пресет для повторного использования").pack(side="left")
 
         # --- строка 2: установка APK
         apk_row = ttk.Frame(pres)
@@ -1889,13 +1938,16 @@ class App(tk.Tk):
         self.apk_var = tk.StringVar()
         self.apk_box = ttk.Combobox(apk_row, textvariable=self.apk_var, state="readonly", width=28)
         self.apk_box.pack(side="left", padx=(0, 6))
-        ttk.Button(apk_row, text="Установить", style="Accent.TButton", command=self.install_apk).pack(side="left", padx=(0, 6))
-        ttk.Button(apk_row, text="Добавить APK в папку", command=self.add_apk).pack(side="left")
+        tooltip_btn(ttk.Button(apk_row, text="Установить", style="Accent.TButton", command=self.install_apk),
+                           "Установить выбранный APK на устройство (adb install)").pack(side="left", padx=(0, 6))
+        tooltip_btn(ttk.Button(apk_row, text="Добавить APK в папку", command=self.add_apk),
+                           "Выбрать APK-файл и скопировать его в папку apk программы").pack(side="left")
 
         # --- строка 3: экспорт
         exp_row = ttk.Frame(pres)
         exp_row.pack(fill="x")
-        ttk.Button(exp_row, text="Экспорт списка (CSV)", command=self.export_csv).pack(side="left")
+        tooltip_btn(ttk.Button(exp_row, text="Экспорт списка (CSV)", command=self.export_csv),
+                           "Экспортировать список пакетов в CSV-файл").pack(side="left")
 
         self.reload_presets()
 
@@ -2074,10 +2126,13 @@ class App(tk.Tk):
             return "\n\n".join(outs)
 
         def done(res):
+            # Вывод в консоль вместо отдельного окна
+            self.nb.select(self.console_tab)
             if isinstance(res, Exception):
-                self.show_text(name, f"Ошибка: {res}")
+                self.console.insert("end", f"$ {name}\nОшибка: {res}\n\n")
             else:
-                self.show_text(name, res)
+                self.console.insert("end", f"$ {name}\n{res}\n\n")
+            self.console.see("end")
             self.load_apps()
 
         self.bg(job, done)
@@ -2139,9 +2194,12 @@ class App(tk.Tk):
 
         bar = FlowFrame(frm, gap=6)
         bar.grid(row=3, column=0, columnspan=2, sticky="we", pady=(8, 0))
-        bar.add(ttk.Button(bar, text="Удалить", command=delete))
-        bar.add(ttk.Button(bar, text="Сохранить", style="Accent.TButton", command=ok))
-        bar.add(ttk.Button(bar, text="Отмена", command=win.destroy))
+        bar.add(tooltip_btn(ttk.Button(bar, text="Удалить", command=delete),
+                           "Удалить элемент"))
+        bar.add(tooltip_btn(ttk.Button(bar, text="Сохранить", style="Accent.TButton", command=ok),
+                           "Сохранить изменения"))
+        bar.add(tooltip_btn(ttk.Button(bar, text="Отмена", command=win.destroy),
+                           "Отменить без сохранения"))
         win.bind("<Escape>", lambda e: win.destroy())
         win.grab_set()
         win.wait_window()
@@ -2207,24 +2265,31 @@ class App(tk.Tk):
         row_touch = ttk.Frame(sc)
         row_touch.grid(row=4, column=0, columnspan=2, sticky="w", pady=2)
         ttk.Checkbutton(row_touch, text="Показывать касания", variable=self.sc_touch).pack(side="left")
-        ttk.Button(row_touch, text="Вкл. на устройстве", width=15,
-                   command=lambda: self._set_show_touches(True)).pack(side="left", padx=4)
+        tooltip_btn(ttk.Button(row_touch, text="Вкл. на устройстве", width=15,
+                   command=lambda: self._set_show_touches(True)),
+                   "Включить «Показывать касания» в настройках разработчика на устройстве").pack(side="left", padx=4)
         ttk.Checkbutton(sc, text="Выключить экран устройства", variable=self.sc_off).grid(row=5, column=0, columnspan=2, sticky="w")
-        ttk.Button(sc, text="Запустить scrcpy", style="Accent.TButton", command=self.scrcpy_start).grid(
+        tooltip_btn(ttk.Button(sc, text="Запустить scrcpy", style="Accent.TButton", command=self.scrcpy_start),
+                           "Запустить scrcpy — зеркалирование экрана устройства на ПК").grid(
             row=7, column=0, columnspan=2, sticky="we", pady=(8, 0))
 
         ext = ttk.LabelFrame(grid, text="Внешние программы и пульт", padding=8)
         grid.add(ext)
-        ttk.Button(ext, text="Vysor", command=self.vysor_start).pack(fill="x", pady=2)
-        ttk.Button(ext, text="Открыть пульт", style="Accent.TButton", command=self.open_remote).pack(fill="x", pady=2)
+        tooltip_btn(ttk.Button(ext, text="Vysor", command=self.vysor_start),
+                           "Запустить Vysor (альтернативное зеркалирование экрана)").pack(fill="x", pady=2)
+        tooltip_btn(ttk.Button(ext, text="Открыть пульт", style="Accent.TButton", command=self.open_remote),
+                           "Открыть окно пульта управления с настраиваемыми кнопками").pack(fill="x", pady=2)
         self.prog_frame = ttk.Frame(ext)
         self.prog_frame.pack(fill="x")
-        ttk.Button(ext, text="Добавить программу...", command=self.add_program).pack(fill="x", pady=(6, 0))
+        tooltip_btn(ttk.Button(ext, text="Добавить программу...", command=self.add_program),
+                           "Добавить внешнюю программу в меню быстрого запуска").pack(fill="x", pady=(6, 0))
 
         ctl = ttk.LabelFrame(grid, text="Управление", padding=8)
         grid.add(ctl)
-        ttk.Button(ctl, text="Скриншот", command=self.screenshot).pack(fill="x", pady=2)
-        ttk.Button(ctl, text="Перезагрузка", command=lambda: self.reboot("")).pack(fill="x", pady=2)
+        tooltip_btn(ttk.Button(ctl, text="Скриншот", command=self.screenshot),
+                           "Сделать скриншот экрана устройства (adb shell screencap)").pack(fill="x", pady=2)
+        tooltip_btn(ttk.Button(ctl, text="Перезагрузка", command=lambda: self.reboot("")),
+                           "Перезагрузить устройство (adb reboot)").pack(fill="x", pady=2)
         btns = ttk.LabelFrame(f, text="Мои кнопки управления (ЛКМ - выполнить, ПКМ - изменить / удалить / двигать)",
                               padding=8)
         btns.pack(fill="x", padx=4, pady=6)
@@ -2379,9 +2444,12 @@ class App(tk.Tk):
         bar = FlowFrame(frm, gap=6)
         bar.grid(row=4, column=0, columnspan=2, sticky="we")
         if idx is not None:
-            bar.add(ttk.Button(bar, text="Удалить кнопку", command=delete))
-        bar.add(ttk.Button(bar, text="Сохранить", style="Accent.TButton", command=save))
-        bar.add(ttk.Button(bar, text="Отмена", command=win.destroy))
+            bar.add(tooltip_btn(ttk.Button(bar, text="Удалить кнопку", command=delete),
+                           "Удалить эту кнопку с пульта"))
+        bar.add(tooltip_btn(ttk.Button(bar, text="Сохранить", style="Accent.TButton", command=save),
+                           "Сохранить кнопку"))
+        bar.add(tooltip_btn(ttk.Button(bar, text="Отмена", command=win.destroy),
+                           "Отменить без сохранения"))
         win.bind("<Escape>", lambda e: win.destroy())
         win.grab_set()
 
@@ -2449,9 +2517,12 @@ class App(tk.Tk):
         self.model_lbl = top.add(ttk.Label(top, text="-", font=("Segoe UI", 11, "bold")))
         self.auto_state = tk.BooleanVar(value=True)
         top.add(ttk.Checkbutton(top, text="Обновлять каждые 3 с", variable=self.auto_state))
-        top.add(ttk.Button(top, text="Обновить сейчас", command=self.refresh_state))
-        top.add(ttk.Button(top, text="+ Показатель", style="Accent.TButton", command=self.card_add))
-        top.add(ttk.Button(top, text="Сбросить к стандартным", command=self.cards_reset))
+        top.add(tooltip_btn(ttk.Button(top, text="Обновить сейчас", command=self.refresh_state),
+                           "Принудительно обновить значения показателей"))
+        top.add(tooltip_btn(ttk.Button(top, text="+ Показатель", style="Accent.TButton", command=self.card_add),
+                           "Добавить новый пользовательский показатель"))
+        top.add(tooltip_btn(ttk.Button(top, text="Сбросить к стандартным", command=self.cards_reset),
+                           "Вернуть стандартный набор показателей состояния"))
         self.cards_frame = FlowFrame(f, gap=10)
         self.cards_frame.pack(fill="x", pady=8)
         self.load_lbl = ttk.Label(f, text="")
@@ -2585,8 +2656,10 @@ class App(tk.Tk):
 
         bar = FlowFrame(frm, gap=6)
         bar.grid(row=len(labels) + 4, column=0, columnspan=2, sticky="we")
-        bar.add(ttk.Button(bar, text="Сохранить", style="Accent.TButton", command=ok))
-        bar.add(ttk.Button(bar, text="Отмена", command=win.destroy))
+        bar.add(tooltip_btn(ttk.Button(bar, text="Сохранить", style="Accent.TButton", command=ok),
+                           "Сохранить изменения"))
+        bar.add(tooltip_btn(ttk.Button(bar, text="Отмена", command=win.destroy),
+                           "Отменить без сохранения"))
         win.bind("<Escape>", lambda e: win.destroy())
         win.grab_set()
         win.wait_window()
@@ -2642,16 +2715,20 @@ class App(tk.Tk):
         top.pack(fill="x")
         top.add(ttk.Label(top, text="Сортировка:"))
         for label, key in [("по нагрузке CPU", "cpu"), ("по памяти", "mem"), ("по имени", "name"), ("по PID", "pid")]:
-            top.add(ttk.Button(top, text=label, command=functools.partial(self.proc_sort_by, key)))
+            top.add(tooltip_btn(ttk.Button(top, text=label, command=functools.partial(self.proc_sort_by, key)),
+                           f"Сортировать по {label}"))
         self.proc_filter = tk.StringVar()
         self.proc_filter.trace_add("write", lambda *a: self.fill_procs())
         top.add(ttk.Entry(top, textvariable=self.proc_filter, width=22))
         top.add(ttk.Label(top, text="фильтр по имени"))
         self.auto_proc = tk.BooleanVar(value=False)
         top.add(ttk.Checkbutton(top, text="авто (каждые 3 с)", variable=self.auto_proc))
-        top.add(ttk.Button(top, text="Обновить", command=self.refresh_procs))
-        top.add(ttk.Button(top, text="Копировать выбранные", command=self.proc_copy))
-        top.add(ttk.Button(top, text="Завершить выбранный", command=self.kill_selected))
+        top.add(tooltip_btn(ttk.Button(top, text="Обновить", command=self.refresh_procs),
+                           "Обновить список процессов"))
+        top.add(tooltip_btn(ttk.Button(top, text="Копировать выбранные", command=self.proc_copy),
+                           "Скопировать выбранные процессы в буфер обмена"))
+        top.add(tooltip_btn(ttk.Button(top, text="Завершить выбранный", command=self.kill_selected),
+                           "Завершить выбранный процесс (kill)"))
         body = ttk.Frame(f)
         body.pack(fill="both", expand=True, pady=6)
         self.ptree = ttk.Treeview(body, columns=("pid", "name", "mem", "cpu", "state"), show="headings",
@@ -2830,8 +2907,9 @@ class App(tk.Tk):
         for w in self.prog_frame.winfo_children():
             w.destroy()
         for prog in load_json_folder(P("programs")):
-            ttk.Button(self.prog_frame, text=prog.get("name", prog["file"]),
-                       command=functools.partial(self.program_run, prog)).pack(fill="x", pady=1)
+            tooltip_btn(ttk.Button(self.prog_frame, text=prog.get("name", prog["file"]),
+                       command=functools.partial(self.program_run, prog)),
+                           f"Запустить программу: {prog.get('name', prog['file'])}").pack(fill="x", pady=1)
 
     def add_program(self):
         path = filedialog.askopenfilename(title="Программа", filetypes=[("Программа", "*.exe")])
@@ -2909,10 +2987,14 @@ class App(tk.Tk):
         self.cmd_var = tk.StringVar()
         self.cmd_entry = ttk.Entry(row, textvariable=self.cmd_var, font=("Consolas", 10))
         self.cmd_entry.pack(side="left", fill="x", expand=True, padx=4)
-        ttk.Button(row, text="Выполнить", style="Accent.TButton", command=self.shell_run).pack(side="left")
-        ttk.Button(row, text="Очистить", command=lambda: self.console.delete("1.0", "end")).pack(side="left", padx=4)
-        ttk.Button(row, text="Открыть окно", command=self.open_console_window).pack(side="left", padx=4)
-        ttk.Button(row, text="Kill PID", command=self.kill_clipboard_pid).pack(side="left", padx=4)
+        tooltip_btn(ttk.Button(row, text="Выполнить", style="Accent.TButton", command=self.shell_run),
+                           "Выполнить команду из поля ввода на подключённом устройстве").pack(side="left")
+        tooltip_btn(ttk.Button(row, text="Очистить", command=lambda: self.console.delete("1.0", "end")),
+                           "Очистить вывод консоли").pack(side="left", padx=4)
+        tooltip_btn(ttk.Button(row, text="Открыть окно", command=self.open_console_window),
+                           "Открыть системную консоль (cmd.exe) с интерактивным adb shell").pack(side="left", padx=4)
+        tooltip_btn(ttk.Button(row, text="Kill PID", command=self.kill_clipboard_pid),
+                           "Убить процесс с PID из буфера обмена на устройстве").pack(side="left", padx=4)
         self.sug = tk.Listbox(f, height=8, bg=C["panel"], fg=C["text"], font=("Consolas", 10),
                               selectbackground=C["sel"], relief="flat", activestyle="none")
         e = self.cmd_entry
@@ -3239,10 +3321,10 @@ class App(tk.Tk):
         )
 
         # Кнопка остановки
-        self._stream_stop_btn = ttk.Button(
+        self._stream_stop_btn = tooltip_btn(ttk.Button(
             self.cmd_entry.master, text="■ Стоп",
             command=stop_streaming, style="Accent.TButton"
-        )
+        ), "Остановить стриминг (logcat, top, dmesg -w и т.д.)")
         self._stream_stop_btn.pack(side="left", padx=4)
 
         # Запускаем ридер и поллер очереди
@@ -3293,8 +3375,10 @@ class App(tk.Tk):
         Tooltip(f, "Запуск Python-скриптов, результат в окне, остановка")
         top = FlowFrame(f, gap=6)
         top.pack(fill="x")
-        top.add(ttk.Button(top, text="■ Остановить", command=self.stop_script))
-        top.add(ttk.Button(top, text="Открыть папку скриптов", command=self.open_scripts_folder))
+        top.add(tooltip_btn(ttk.Button(top, text="■ Остановить", command=self.stop_script),
+                           "Остановить выполняющийся скрипт").pack(side="left"))
+        top.add(tooltip_btn(ttk.Button(top, text="Открыть папку скриптов", command=self.open_scripts_folder),
+                           "Открыть папку scripts в проводнике").pack(side="left"))
         top.add(ttk.Label(top, text="«+ Добавить скрипт» спрашивает путь к .py; копия сохраняется в папку scripts. "
                                     "ЛКМ - запустить, ПКМ - изменить / удалить / двигать."))
         bars = ttk.LabelFrame(f, text="Мои скрипты", padding=8)
@@ -3305,9 +3389,11 @@ class App(tk.Tk):
         outf.pack(fill="both", expand=True)
         rb = FlowFrame(outf, gap=6)
         rb.pack(fill="x", pady=(0, 4))
-        rb.add(ttk.Button(rb, text="Копировать результат",
-                          command=lambda: self.copy_text(self.script_out.get("1.0", "end").rstrip())))
-        rb.add(ttk.Button(rb, text="Очистить результат", command=lambda: self.script_out.delete("1.0", "end")))
+        rb.add(tooltip_btn(ttk.Button(rb, text="Копировать результат",
+                          command=lambda: self.copy_text(self.script_out.get("1.0", "end").rstrip())),
+                           "Скопировать весь результат скрипта в буфер обмена"))
+        rb.add(tooltip_btn(ttk.Button(rb, text="Очистить результат", command=lambda: self.script_out.delete("1.0", "end")),
+                           "Очистить окно результата"))
         self.script_out = scrolledtext.ScrolledText(outf, height=10, bg=C["term"], fg=C["ok"],
                                                     font=("Consolas", 10), relief="flat", wrap="word")
         self.script_out.pack(fill="both", expand=True)
@@ -3441,10 +3527,12 @@ class App(tk.Tk):
         ttk.Label(f, text="Путь к Vysor").grid(row=2, column=0, sticky="w")
         self.set_vysor = tk.StringVar(value=self.S.get("vysor_path", ""))
         ttk.Entry(f, textvariable=self.set_vysor, width=60).grid(row=2, column=1, sticky="w", padx=6)
-        ttk.Button(f, text="Сохранить настройки", style="Accent.TButton", command=self.save_settings_ui).grid(
-            row=3, column=0, sticky="w", pady=12)
-        ttk.Button(f, text="Экспорт всего в один файл...", command=self.export_bundle).grid(row=4, column=0, sticky="w", pady=4)
-        ttk.Button(f, text="Импорт из файла...", command=self.import_bundle).grid(row=4, column=1, sticky="w", padx=6)
+        tooltip_btn(ttk.Button(f, text="Сохранить настройки", style="Accent.TButton", command=self.save_settings_ui),
+                           "Сохранить IP ПК и путь к Vysor").grid(row=3, column=0, sticky="w", pady=12)
+        tooltip_btn(ttk.Button(f, text="Экспорт всего в один файл...", command=self.export_bundle),
+                           "Экспортировать все настройки, кнопки, скрипты, пульты в один JSON-файл").grid(row=4, column=0, sticky="w", pady=4)
+        tooltip_btn(ttk.Button(f, text="Импорт из файла...", command=self.import_bundle),
+                           "Импортировать настройки, кнопки, скрипты, пульты из JSON-файла").grid(row=4, column=1, sticky="w", padx=6)
         ttk.Label(f, text="В экспорт входят: кнопки, действия над приложениями, пульты, показатели состояния, "
                           "тексты всех скриптов из папки scripts, настройки scrcpy и программы-кнопки. "
                           "Адрес ПК, путь к Vysor и история не экспортируются.",
@@ -3524,8 +3612,10 @@ class App(tk.Tk):
 
         bar = FlowFrame(frm, gap=6)
         bar.grid(row=len(names), column=0, columnspan=2, sticky="we", pady=(10, 0))
-        bar.add(ttk.Button(bar, text="Отмена", command=win.destroy))
-        bar.add(ttk.Button(bar, text="OK", style="Accent.TButton", command=ok))
+        bar.add(tooltip_btn(ttk.Button(bar, text="Отмена", command=win.destroy),
+                           "Отменить"))
+        bar.add(tooltip_btn(ttk.Button(bar, text="OK", style="Accent.TButton", command=ok),
+                           "Подтвердить"))
         win.bind("<Return>", lambda e: ok())
         win.bind("<Escape>", lambda e: win.destroy())
         win.grab_set()
