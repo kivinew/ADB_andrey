@@ -1,6 +1,21 @@
 # Android Manager — История версий
 
-## v1.5.0 (текущая разработка)
+## v1.8.0 (текущая разработка)
+- **Модульная структура**: `Android_manager.pyw` больше не содержит программу строкой
+  (`PROGRAM_SRC` удалён). Код разложен на пакеты:
+  - `android_manager/` — приложение: `config`, `paths`, `parsing`, `storage`, `proc`,
+    `scriptapi`, `defaults`, `util`, `widgets/`, `ui/` (12 модулей по вкладкам);
+  - `installer/` — установщик: `service`, `build`, `gui`, `packages`, `net`, `shortcuts`.
+- `App` собирается из миксинов-вкладок: правка одной вкладки не требует чтения всего файла.
+- Установщик собирает exe из пакета (`PyInstaller --paths`), а не из встроенной строки.
+- `python Android_manager.pyw --version` и `--run`; `python -m android_manager` — запуск приложения.
+- `devtools/`: `smoke_gui.py` (дымовой тест окна), `build_installer.py` (установщик одним
+  файлом в `dist/`), `verify_extraction.py` (сверка переноса по AST).
+- Данные программы по-прежнему рядом с exe; `settings.json`, `scripts/`, `apk/`, `programs/`,
+  `screenshots/`, `files/` и сгенерированный `dist/` исключены из git.
+- Удалён отладочный мусор (`_tab_progress.txt`, `_t1.py`, `_test_app_tab.py`, `nul`).
+
+## v1.5.0 (предыдущая разработка)
 - Переименование: «КЭС ТВ-Менеджер» → **Android manager**
 - Путь установки: `Android-manager` (вместо `KES-TV-Manager`)
 - Все упоминания старого бренда заменены на **Android manager**
