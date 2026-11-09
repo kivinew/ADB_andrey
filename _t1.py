@@ -1,0 +1,15 @@
+import tkinter as tk
+from tkinter import ttk
+r = tk.Tk()
+nb = ttk.Notebook(r)
+f = ttk.Frame(nb, padding=8)
+nb.add(f, text="X")
+g = ttk.Frame(nb, padding=8)
+nb.add(g, text="Y")
+print("index current:", nb.index("current"))
+print("index frame f:", nb.index(f))
+print("select frame ->", nb.select(f))
+r.update()
+print("after select current:", nb.index("current"))
+r.destroy()
+print("OK")

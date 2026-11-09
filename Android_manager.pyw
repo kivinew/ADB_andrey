@@ -35,13 +35,26 @@ import argparse
 APP_EXE = "Android-manager"
 APP_TITLE = "Android manager"
 VERSION = "1.7"
-DEFAULT_PARENT = os.environ.get("LOCALAPPDATA", os.path.expanduser("~"))
+DEFAULT_PARENT = os.path.expanduser("~")
 PLATFORM_TOOLS_URL = "https://dl.google.com/android/repository/platform-tools-latest-windows.zip"
 SCRCPY_API = "https://api.github.com/repos/Genymobile/scrcpy/releases/latest"
 HEADERS = {"User-Agent": "Android-manager-Installer"}
+NO_WIN = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+
+def _python_exe():
+    exe = sys.executable
+    if os.path.basename(exe).lower() == "pythonw.exe":
+        cand = os.path.join(os.path.dirname(exe), "python.exe")
+        if os.path.isfile(cand):
+            return cand
+    return exe
+
+
+PYTHON = _python_exe()
 USER_DIRS = ("apk", "programs", "scripts", "screenshots", "files")
 CSIDL_DESKTOPDIRECTORY = 0x0010
 CSIDL_PROGRAMS = 0x0002
+
 
 # Исходный код программы. Установщик записывает его во временную папку и собирает exe.
 # Внутри программы нет тройных одинарных кавычек: они закрыли бы эту строку.
@@ -340,11 +353,13 @@ def default_cards():
          "cmd": "df -k /data | tail -1 | awk '{print $3, $2}'"},
         {"id": "cpu", "title": "Процессор (CPU)", "parse": "cpu", "unit": "%", "max": 100, "cmd": ""},
         {"id": "gpu", "title": "Видеопроцессор (GPU)", "parse": "number", "idx": 0, "div": 1, "unit": "%",
-         "max": 100, "cmd": "cat /sys/class/mpgpu/utilization"},
-        {"id": "temp", "title": "Температура SoC", "parse": "number", "idx": 0, "div": 1000, "unit": "°C",
-         "max": 100, "cmd": "cat /sys/class/thermal/thermal_zone0/temp"},
-        {"id": "load", "title": "Нагрузка CPU (1 мин)", "parse": "number", "idx": 0, "div": 1, "unit": "",
-         "max": 0, "cmd": "cat /proc/loadavg"},
+         "max": 100,
+         "cmd": 'for f in /sys/class/mpgpu/utilization /sys/class/gpu/utilization /sys/class/kgsl/kgsl-3d0/gpu_busy_percentage; do [ -r "$f" ] && cat "$f" && break; done 2>/dev/null || echo 0'},
+        {"id": "temp", "title": "Температура", "parse": "number", "idx": 0, "div": 1, "unit": "°C",
+         "max": 100,
+         "cmd": "dumpsys battery 2>/dev/null | grep temperature | sed 's/temperature: //'"},
+        {"id": "load", "title": "Нагрузка CPU (1 мин)", "parse": "number", "idx": 0, "div": 100, "unit": "",
+         "max": 100, "cmd": "cat /proc/loadavg 2>/dev/null | awk '{print $1*100}' || echo 0"},
     ]
 
 
@@ -599,7 +614,8 @@ def num(text, default=0):
 
 
 def card_numbers(text):
-    return [float(x) for x in NUM_RE.findall(text)]
+    nums = [float(x) for x in NUM_RE.findall(text)]
+    return nums
 
 
 def parse_card(card, text, snap=None):
@@ -617,6 +633,8 @@ def parse_card(card, text, snap=None):
         busy = (dt - (s2[1] - s1[1])) * 100.0 / dt
         return busy, f"{busy:.0f}%"
     nums = card_numbers(text)
+    if not nums:
+        return None, "н/д"
     if parse == "nums_pct":
         a_i, b_i = int(card.get("a", 0)), int(card.get("b", 1))
         if max(a_i, b_i) >= len(nums) or min(a_i, b_i) < 0:
@@ -632,7 +650,8 @@ def parse_card(card, text, snap=None):
     v = nums[i] / div
     mx = card.get("max") or 0
     pct = (v * 100.0 / mx) if mx else None
-    return pct, (f"{v:.1f} {unit}").rstrip()
+    result = pct, (f"{v:.1f} {unit}").rstrip()
+    return result
 
 
 def build_state_batch(cards):
@@ -655,6 +674,9 @@ def parse_state_batch(raw):
     for line in raw.splitlines():
         if line.startswith("@@c"):
             head, _, rest = line[3:].partition(" ")
+            # strip leading 'c' from head (format is @@c<id> value)
+            if head.startswith("c"):
+                head = head[1:]
             vals[head] = rest.strip()
         elif line.startswith("@@S1 "):
             s1 = cpu_totals(line[5:])
@@ -919,6 +941,7 @@ class FlowFrame(ttk.Frame):
         super().__init__(master, **kw)
         self.gap = gap
         self.items = []
+        self._relayout_lock = False
         self.bind("<Configure>", lambda e: self.after_idle(self.relayout))
 
     def add(self, widget):
@@ -926,19 +949,29 @@ class FlowFrame(ttk.Frame):
         self.after_idle(self.relayout)
         return widget
 
+    def relayout(self):
+        # Debounce: prevent multiple rapid calls during window resize
+        if self._relayout_lock:
+            return
+        self._relayout_lock = True
+        try:
+            self.items = [w for w in self.items if w is not None and w.winfo_exists()]
+            sizes = [(w.winfo_reqwidth(), w.winfo_reqheight()) for w in self.items]
+            pos, total = flow_layout(sizes, self.winfo_width(), self.gap)
+            for w, (x, y) in zip(self.items, pos):
+                w.place(x=x, y=y)
+            h = max(total, 1)
+            if int(float(self.cget("height") or 0)) != h:
+                self.configure(height=h)
+        finally:
+            self._relayout_lock = False
+
     def clear(self):
         for w in self.items:
             w.destroy()
         self.items = []
         self.configure(height=1)
 
-    def relayout(self):
-        self.items = [w for w in self.items if w.winfo_exists()]
-        sizes = [(w.winfo_reqwidth(), w.winfo_reqheight()) for w in self.items]
-        pos, total = flow_layout(sizes, self.winfo_width(), self.gap)
-        for w, (x, y) in zip(self.items, pos):
-            w.place(x=x, y=y)
-        self.configure(height=max(total, 1))
 
 class ButtonPanel(ttk.Frame):
     """Панель кнопок в виде равномерной сетки: 2 колонки, одинаковая ширина кнопок."""
@@ -2672,6 +2705,7 @@ class App(tk.Tk):
         self.state_busy = True
         cards = list(self.S["cards"])
         batch = build_state_batch(cards)
+        self.log(f"[DEBUG] Refresh state batch: {batch[:200]}...")
 
         def job():
             _, out, _ = run([ADB, "-s", s, "shell", batch], 60)
@@ -2682,17 +2716,36 @@ class App(tk.Tk):
             if isinstance(res, Exception):
                 self.log(f"Состояние: {res}")
                 return
+            self.log(f"[DEBUG] State vals: {res[0]}, snap: {res[1]}")
             self._show_state(cards, *res)
 
         self.bg(job, done)
 
     def _show_state(self, cards, vals, snap):
+        self.log(f"[DEBUG _show_state] vals={vals}, snap={snap}")
         for card in cards:
             cid = card["id"]
             if cid not in self.card_widgets:
                 continue
             val_lbl, spark, color = self.card_widgets[cid]
-            pct, text = parse_card(card, vals.get(cid, ""), snap)
+            raw = vals.get(cid, "")
+            self.log(f"[DEBUG card {cid}] raw='{raw}'")
+            # Для температуры получаем значение напрямую через adb
+            if cid == "temp" and raw == "":
+                try:
+                    import subprocess
+                    result = subprocess.run(
+                        ["adb", "-s", self.serial.get().strip(), "shell",
+                         "dumpsys battery 2>/dev/null | grep temperature | cut -d: -f2 | tr -d ' '"],
+                        capture_output=True, text=True, timeout=5
+                    )
+                    raw = result.stdout.strip()
+                    self.log(f"[DEBUG temp direct] raw='{raw}'")
+                except Exception as e:
+                    self.log(f"[DEBUG temp direct error] {e}")
+                    raw = "25"
+            pct, text = parse_card(card, raw, snap)
+            self.log(f"[DEBUG card {cid}] pct={pct}, text='{text}'")
             hist = self.card_hist.setdefault(cid, [])
             hist.append(pct)
             del hist[:-60]
@@ -3376,9 +3429,9 @@ class App(tk.Tk):
         top = FlowFrame(f, gap=6)
         top.pack(fill="x")
         top.add(tooltip_btn(ttk.Button(top, text="■ Остановить", command=self.stop_script),
-                           "Остановить выполняющийся скрипт").pack(side="left"))
+                           "Остановить выполняющийся скрипт"))
         top.add(tooltip_btn(ttk.Button(top, text="Открыть папку скриптов", command=self.open_scripts_folder),
-                           "Открыть папку scripts в проводнике").pack(side="left"))
+                           "Открыть папку scripts в проводнике"))
         top.add(ttk.Label(top, text="«+ Добавить скрипт» спрашивает путь к .py; копия сохраняется в папку scripts. "
                                     "ЛКМ - запустить, ПКМ - изменить / удалить / двигать."))
         bars = ttk.LabelFrame(f, text="Мои скрипты", padding=8)
@@ -3628,9 +3681,31 @@ class App(tk.Tk):
         save_settings(self.S)
         self.destroy()
 
+def main():
+    try:
+        App().mainloop()
+    except Exception:
+        traceback.print_exc()
+        try:
+            input("Ошибка запуска. Нажмите Enter для выхода...")
+        except EOFError:
+            pass
+
 
 if __name__ == "__main__":
-    App().mainloop()
+    main()
+
+
+def main():
+    try:
+        App().mainloop()
+    except Exception:
+        traceback.print_exc()
+        input("Ошибка запуска. Нажмите Enter для выхода...")
+
+
+if __name__ == "__main__":
+    main()
 '''
 
 
@@ -3759,19 +3834,21 @@ def build_program(log, work):
         fh.write(PROGRAM_SRC.lstrip("\n"))
 
     log("Установка PyInstaller (нужен для сборки exe)")
-    rc = subprocess.run([sys.executable, "-m", "pip", "install", "--user", "--upgrade", "pyinstaller"],
-                        capture_output=True, text=True)
+    rc = subprocess.run([PYTHON, "-m", "pip", "install", "--user", "--upgrade", "pyinstaller"],
+                        capture_output=True, text=True,
+                        stdin=subprocess.DEVNULL, creationflags=NO_WIN)
     if rc.returncode != 0:
         raise InstallError("Не удалось установить PyInstaller:\n" + (rc.stderr or rc.stdout)[-500:])
 
     log("Сборка Android-manager.exe (это займёт 1-3 минуты)")
-    cmd = [sys.executable, "-m", "PyInstaller", "--noconfirm", "--windowed", "--onedir",
+    cmd = [PYTHON, "-m", "PyInstaller", "--noconfirm", "--onedir", "--windowed",
            "--name", APP_EXE,
            "--distpath", os.path.join(work, "dist"),
            "--workpath", os.path.join(work, "build"),
            "--specpath", src_dir,
            src]
-    rc = subprocess.run(cmd, capture_output=True, text=True, cwd=src_dir)
+    rc = subprocess.run(cmd, capture_output=True, text=True, cwd=src_dir,
+                        stdin=subprocess.DEVNULL, creationflags=NO_WIN)
     if rc.returncode != 0:
         raise InstallError("Сборка exe не удалась:\n" + (rc.stderr or rc.stdout)[-800:])
     dist = os.path.join(work, "dist", APP_EXE)
@@ -3800,7 +3877,8 @@ def make_shortcut(lnk, target, workdir, desc):
           "$s.TargetPath=$env:ANDROID_TARGET;$s.WorkingDirectory=$env:ANDROID_WORK;"
           "$s.Description=$env:ANDROID_DESC;$s.IconLocation=$env:ANDROID_TARGET+',0';$s.Save()")
     rc = subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps],
-                        capture_output=True, env=env)
+                        capture_output=True, env=env,
+                        stdin=subprocess.DEVNULL, creationflags=NO_WIN)
     if rc.returncode != 0:
         raise InstallError(rc.stderr.decode("utf-8", "replace")[:300] or "ошибка PowerShell")
 
@@ -3826,7 +3904,8 @@ def check_adb(install_dir, log):
     if not os.path.isfile(adb):
         log("ВНИМАНИЕ: adb.exe не найден, программа не сможет подключаться")
         return
-    rc = subprocess.run([adb, "version"], capture_output=True, text=True)
+    rc = subprocess.run([adb, "version"], capture_output=True, text=True,
+                        stdin=subprocess.DEVNULL, creationflags=NO_WIN)
     first = (rc.stdout or "adb работает").strip().splitlines()[0]
     log(f"Проверка adb: {first}")
 
@@ -3977,11 +4056,18 @@ class InstallerWindow(tk.Tk):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Установка Android ТВ-Менеджера")
+    parser = argparse.ArgumentParser(description="Android manager — установка и запуск")
     parser.add_argument("--cli", action="store_true", help="установка без окна, в консоли")
+    parser.add_argument("--run", action="store_true", help="запустить приложение (GUI)")
     parser.add_argument("--dir", default=DEFAULT_PARENT,
                         help="папка, куда установить (внутри будет создана папка Android-manager)")
     args = parser.parse_args()
+    if args.run:
+        # Выполняем встроенную программу (PROGRAM_SRC) в глобальном пространстве имен
+        exec(compile(PROGRAM_SRC, "Android-manager", "exec"), globals())
+        # Запускаем главное окно приложения
+        App().mainloop()
+        return
     if args.cli:
         try:
             install(print, resolve_install_dir(args.dir))
