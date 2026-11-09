@@ -27,7 +27,8 @@ def check_scripts(app):
     """Запускает скрипт через вкладку и проверяет результат в окне."""
     path = os.path.join(SCRIPTS_DIR, SMOKE_SCRIPT)
     with open(path, "w", encoding="utf-8", newline="\n") as fh:
-        fh.write("import adb\nprint('smoke', 2 + 2)\n")
+        fh.write("import adb\nprint('smoke', 2 + 2)\n"
+                 "print('model:', adb.getprop('ro.product.model'))\n")
     app.serial.set("127.0.0.1:5555")
     try:
         app.run_script({"name": "smoke", "kind": "script", "file": SMOKE_SCRIPT})
@@ -40,7 +41,7 @@ def check_scripts(app):
     finally:
         if os.path.isfile(path):
             os.remove(path)
-    ok = "smoke 4" in text and "готово" in text
+    ok = "smoke 4" in text and "model:" in text and "готово" in text
     print("вкладка «Скрипты»:", "OK" if ok else "ОШИБКА\n" + text)
     return ok
 

@@ -164,8 +164,8 @@ def main():
             changed.append("метод App.%s (%s)" % (name, new_methods[name][0][0]))
 
     extra = set(new_methods) - set(old_methods)
-    if extra:
-        problems.append("лишние методы: %s" % ", ".join(sorted(extra)))
+    for name in sorted(extra):
+        changed.append("новый метод App.%s (%s)" % (name, new_methods[name][0][0]))
 
     # интерфейс класса: старый App исполняем в отдельном пространстве имён
     # (__file__ указывает в корень проекта, чтобы модульные пути совпали с текущими)

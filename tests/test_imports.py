@@ -116,6 +116,25 @@ class TestPaths(unittest.TestCase):
         self.assertTrue(os.path.isdir(os.path.join(root, "installer")))
 
 
+class TestPackageLayout(unittest.TestCase):
+    """Пакет не должен зарастать файлами данных и пустыми файлами."""
+
+    def test_no_user_data_dirs_inside_package(self):
+        forbidden = {"apk", "files", "programs", "screenshots", "scripts"}
+        present = forbidden & set(os.listdir(os.path.join(ROOT, "android_manager")))
+        self.assertEqual(present, set(), "в пакете появились каталоги данных программы")
+
+    def test_no_empty_python_files(self):
+        empty = []
+        for dirpath, _dirs, files in os.walk(os.path.join(ROOT, "android_manager")):
+            for name in files:
+                if name.endswith(".py"):
+                    path = os.path.join(dirpath, name)
+                    if os.path.getsize(path) == 0:
+                        empty.append(os.path.relpath(path, ROOT))
+        self.assertEqual(empty, [])
+
+
 class TestVersion(unittest.TestCase):
     def test_single_version_source(self):
         from android_manager import config

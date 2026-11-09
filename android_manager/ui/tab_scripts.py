@@ -13,7 +13,7 @@ from tkinter import ttk, filedialog, scrolledtext
 from ..config import C
 from ..parsing import detect_pc_ip
 from ..paths import P, SCRIPTS_DIR
-from ..scriptapi import ScriptAPI, ScriptStop
+from ..scriptapi import AdbModule, ScriptAPI, ScriptStop
 from ..storage import import_script_file, save_settings
 from ..util import read_text
 from ..widgets.frames import FlowFrame
@@ -101,18 +101,24 @@ class ScriptsTab:
         else:
             self.log("Скрипт не выполняется")
 
+    def _script_hint(self, text):
+        """Пишет пояснение и в окно результата, и в журнал: иначе причина не видна."""
+        self.script_out.insert("end", text + "\n")
+        self.script_out.see("end")
+        self.log(text)
+
     def run_script(self, item):
         name = item.get("name", "Скрипт")
         if self.script_running:
-            self.log("Скрипт уже выполняется. Дождитесь окончания или нажмите «Остановить»")
+            self._script_hint("Скрипт уже выполняется. Дождитесь окончания или нажмите «Остановить»")
             return
         s = self.serial.get().strip()
         if not s:
-            self.log("Сначала подключите устройство: скрипты работают с выбранным устройством")
+            self._script_hint("Сначала подключите устройство: скрипты работают с выбранным устройством")
             return
         path = P("scripts", item.get("file", ""))
         if not os.path.isfile(path):
-            self.log(f"Файл скрипта не найден: {path}")
+            self._script_hint(f"Файл скрипта не найден: {path}")
             return
         code = read_text(path)
         self.stop_ev.clear()
@@ -126,10 +132,8 @@ class ScriptsTab:
         def script_print(*args, sep=" ", end="\n", **kwargs):
             q.put(sep.join(str(a) for a in args) + end)
 
-        # Создаём модуль adb с привязанной shell функцией
-        import types
-        adb_module = types.ModuleType("adb")
-        adb_module.shell = api.shell
+        # Создаём модуль adb: все методы ScriptAPI доступны и как adb.<метод>, и через import adb
+        adb_module = AdbModule(api)
         # Кладем в namespace и sys.modules, чтобы import adb работал
         namespace = {"adb": adb_module, "print": script_print, "sleep": api.sleep,
                      "time": time, "json": json, "re": re, "os": os}

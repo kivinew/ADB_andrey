@@ -3,6 +3,7 @@
 
 import subprocess
 import time
+import types
 
 from .parsing import parse_pkgs, split_target
 from .paths import ADB
@@ -12,6 +13,29 @@ from .proc import NO_WIN, run
 # ---------------------------------------------------------------- API для скриптов
 class ScriptStop(Exception):
     """Поднимается, когда пользователь нажал «Остановить»."""
+
+
+class AdbModule(types.ModuleType):
+    """Модуль `adb` для пользовательских скриптов.
+
+    Скрипт обращается и как к объекту (`adb.getprop(...)`, `adb` уже лежит в его
+    пространстве имён), и через `import adb` (модуль подставляется в sys.modules).
+    Поэтому все атрибуты делегируются живому ScriptAPI: иначе в модуле был бы
+    только `shell`, а `getprop`, `packages`, `install` и прочие — нет.
+    """
+
+    def __init__(self, api):
+        super().__init__("adb")
+        self.__dict__["_api"] = api
+
+    def __getattr__(self, name):
+        api = self.__dict__.get("_api")
+        if api is None:
+            raise AttributeError(name)
+        try:
+            return getattr(api, name)
+        except AttributeError:
+            raise AttributeError("module 'adb' has no attribute %r" % name) from None
 
 
 class ScriptAPI:
