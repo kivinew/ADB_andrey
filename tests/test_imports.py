@@ -68,6 +68,38 @@ class TestImports(unittest.TestCase):
         self.assertEqual(bad, [], "приложение не должно импортировать installer")
 
 
+    def test_all_globals_resolve(self):
+        """Каждое глобальное имя модуля должно быть импортировано (или быть builtin).
+
+        Ловит класс ошибок переноса: код использует `sys`, а `import sys` остался
+        только внутри вложенной функции (`run_script` во вкладке «Скрипты»).
+        """
+        import builtins
+        import symtable
+
+        bad = []
+        for name in all_modules():
+            module = importlib.import_module(name)
+            path = getattr(module, "__file__", None)
+            if not path or not path.endswith(".py"):
+                continue
+            with open(path, encoding="utf-8") as fh:
+                table = symtable.symtable(fh.read(), path, "exec")
+            known = set(vars(module)) | set(dir(builtins)) | {"__name__", "__file__"}
+
+            def walk(node):
+                for symbol in node.get_symbols():
+                    if symbol.is_global() and symbol.is_referenced():
+                        yield symbol.get_name()
+                for child in node.get_children():
+                    yield from walk(child)
+
+            for global_name in set(walk(table)):
+                if global_name not in known:
+                    bad.append("%s: %s" % (os.path.relpath(path, ROOT), global_name))
+        self.assertEqual(bad, [], "глобальные имена без импорта")
+
+
 class TestPaths(unittest.TestCase):
     def test_base_is_project_root_in_source_mode(self):
         from android_manager import paths

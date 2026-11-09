@@ -13,10 +13,11 @@ python -m android_manager             # то же, что --run
 python Android_manager.pyw --version  # версия
 
 python devtools/smoke_gui.py          # дымовой тест окна: открыть, обойти вкладки, закрыть
+python devtools/smoke_gui.py --scripts  # + запуск скрипта через вкладку «Скрипты»
 python devtools/build_installer.py    # собрать dist/Android_manager.pyw (установщик одним файлом)
 python devtools/verify_extraction.py --baseline <git-ref>   # сверить пакеты с исходным файлом
 python -m compileall -q android_manager installer
-python -m unittest discover -s tests -v                     # 57 тестов
+python -m unittest discover -s tests -v                     # 64 теста
 ```
 
 ## Где что лежит
@@ -68,7 +69,10 @@ python -m unittest discover -s tests -v
 - `tests/test_util.py` — имена, `slug`, `unique_path`, `flow_layout`, `hit_button`,
   геометрия пульта;
 - `tests/test_storage.py` — миграция настроек, `make_bundle`/`apply_bundle`, JSON;
-  работает во временной папке и не трогает файлы проекта.
+  работает во временной папке и не трогает файлы проекта;
+- `tests/test_imports.py` — все модули импортируются, каждое глобальное имя имеет импорт
+  (ловит `NameError` вроде пропавшего `import sys`), `paths.BASE`, запрет
+  зависимости `android_manager` → `installer`.
 
 Новую логику разбора кладите в `parsing.py`/`util.py` и покрывайте тестом: это дешевле,
 чем проверять окно глазами.

@@ -5,6 +5,7 @@ import datetime
 import json
 import os
 import re
+import sys
 import time
 import traceback
 from tkinter import ttk, filedialog, scrolledtext
@@ -132,6 +133,7 @@ class ScriptsTab:
         # Кладем в namespace и sys.modules, чтобы import adb работал
         namespace = {"adb": adb_module, "print": script_print, "sleep": api.sleep,
                      "time": time, "json": json, "re": re, "os": os}
+        prev_adb = sys.modules.get("adb")
         sys.modules["adb"] = adb_module
 
         def job():
@@ -148,6 +150,11 @@ class ScriptsTab:
                 return "error", traceback.format_exc()
 
         def done(res):
+            # возвращаем прежний adb: следующий запуск не должен наследовать этот API
+            if prev_adb is None:
+                sys.modules.pop("adb", None)
+            else:
+                sys.modules["adb"] = prev_adb
             self._drain_script()
             self.script_running = False
             status, tb = res if isinstance(res, tuple) else ("error", str(res))

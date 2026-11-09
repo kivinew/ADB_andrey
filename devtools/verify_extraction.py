@@ -129,6 +129,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--baseline", default=None,
                     help="git-ссылка или путь к старому .pyw (по умолчанию — последний коммит с PROGRAM_SRC)")
+    ap.add_argument("--strict", action="store_true",
+                    help="считать отличия от исходного файла ошибкой (для приёмки переноса)")
     args = ap.parse_args()
 
     text = read_baseline(args.baseline or default_baseline())
@@ -144,6 +146,7 @@ def main():
     new_methods = package_methods()
 
     problems = []
+    changed = []
     for name, node in old.items():
         if name in SKIP:
             continue
@@ -151,14 +154,14 @@ def main():
         if name not in new:
             problems.append("потерян символ: %s" % name)
         elif not any(src == want for _p, src in new[name]):
-            problems.append("изменён символ: %s (%s)" % (name, new[name][0][0]))
+            changed.append("символ %s (%s)" % (name, new[name][0][0]))
 
     for name, node in old_methods.items():
         want = ast.unparse(node)
         if name not in new_methods:
             problems.append("потерян метод App.%s" % name)
         elif not any(src == want for _p, src in new_methods[name]):
-            problems.append("изменён метод App.%s (%s)" % (name, new_methods[name][0][0]))
+            changed.append("метод App.%s (%s)" % (name, new_methods[name][0][0]))
 
     extra = set(new_methods) - set(old_methods)
     if extra:
@@ -181,12 +184,19 @@ def main():
     print("символов в базе: %d, методов App: %d" % (len(old), len(old_methods)))
     print("модулей-пакетов: %d, классов UI: %d" % (
         len({p for v in new.values() for p, _s in v}), len({p for v in new_methods.values() for p, _s in v})))
+    if changed:
+        print("изменено после переноса: %d" % len(changed))
+        for item in changed:
+            print("  ~", item)
     if problems:
         print("ПРОБЛЕМЫ (%d):" % len(problems))
         for p in problems:
             print("  -", p)
         return 1
-    print("OK: перенос дословный, интерфейс App совпадает")
+    if changed and args.strict:
+        print("FAIL: есть отличия от исходного файла (--strict)")
+        return 1
+    print("OK: ничего не потеряно, интерфейс App совпадает")
     return 0
 
 
