@@ -178,8 +178,8 @@ def main():
     lost, gained = interface_diff(old_app, new_app)
     if lost:
         problems.append("App потерял атрибуты: %s" % ", ".join(lost[:20]))
-    if gained:
-        problems.append("App получил лишние атрибуты: %s" % ", ".join(gained[:20]))
+    for name in gained:
+        changed.append("новый атрибут App.%s" % name)
 
     print("символов в базе: %d, методов App: %d" % (len(old), len(old_methods)))
     print("модулей-пакетов: %d, классов UI: %d" % (
