@@ -6,8 +6,7 @@ import time
 
 from .parsing import parse_pkgs, split_target
 from .paths import ADB
-from .proc import run
-from installer.config import NO_WIN
+from .proc import NO_WIN, run
 
 
 # ---------------------------------------------------------------- API для скриптов

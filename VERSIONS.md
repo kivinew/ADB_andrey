@@ -13,7 +13,8 @@
   файлом в `dist/`), `verify_extraction.py` (сверка переноса по AST).
 - Данные программы по-прежнему рядом с exe; `settings.json`, `scripts/`, `apk/`, `programs/`,
   `screenshots/`, `files/` и сгенерированный `dist/` исключены из git.
-- Удалён отладочный мусор (`_tab_progress.txt`, `_t1.py`, `_test_app_tab.py`, `nul`).
+- `tests/`: 57 тестов на разбор вывода adb, утилиты и настройки
+  (`python -m unittest discover -s tests`), без внешних зависимостей.
 
 ## v1.5.0 (предыдущая разработка)
 - Переименование: «КЭС ТВ-Менеджер» → **Android manager**

@@ -10,11 +10,10 @@ from tkinter import ttk, scrolledtext
 
 from ..config import C
 from ..paths import ADB
-from ..proc import run
+from ..proc import NO_WIN, run
 from ..scriptapi import ScriptAPI
 from ..widgets.frames import FlowFrame
 from ..widgets.tooltip import Tooltip, tooltip_btn
-from installer.config import NO_WIN
 
 
 BUILTIN_CMDS = ["getprop", "setprop", "pm", "am", "settings", "input", "dumpsys", "logcat", "dmesg",

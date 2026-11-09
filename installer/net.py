@@ -2,7 +2,7 @@
 """Загрузка файлов из интернета."""
 
 import json
-import urllib
+import urllib.request
 
 from .config import HEADERS, SCRCPY_API
 from .service import InstallError

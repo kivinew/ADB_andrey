@@ -16,6 +16,7 @@ python devtools/smoke_gui.py          # дымовой тест окна: отк
 python devtools/build_installer.py    # собрать dist/Android_manager.pyw (установщик одним файлом)
 python devtools/verify_extraction.py --baseline <git-ref>   # сверить пакеты с исходным файлом
 python -m compileall -q android_manager installer
+python -m unittest discover -s tests -v                     # 57 тестов
 ```
 
 ## Где что лежит
@@ -58,5 +59,16 @@ python -m compileall -q android_manager installer
 
 ## Тесты
 
-Отдельного набора пока нет. Первый кандидат — `android_manager/parsing.py`: функции чистые
-(строка → значение), это единственное место, где ошибку не видно глазом и не ловит `smoke_gui`.
+```bash
+python -m unittest discover -s tests -v
+```
+
+- `tests/test_parsing.py` — разбор вывода adb: `parse_card`, `parse_state_batch`,
+  `parse_proc_stat`/`parse_proc_output`, память, `df`, пакеты, адреса;
+- `tests/test_util.py` — имена, `slug`, `unique_path`, `flow_layout`, `hit_button`,
+  геометрия пульта;
+- `tests/test_storage.py` — миграция настроек, `make_bundle`/`apply_bundle`, JSON;
+  работает во временной папке и не трогает файлы проекта.
+
+Новую логику разбора кладите в `parsing.py`/`util.py` и покрывайте тестом: это дешевле,
+чем проверять окно глазами.

@@ -12,12 +12,11 @@ from tkinter import ttk, filedialog
 
 from ..parsing import split_target
 from ..paths import ADB, P, SCRCPY
-from ..proc import run
+from ..proc import NO_WIN, run
 from ..scriptapi import ScriptAPI
 from ..storage import load_json_folder, save_settings, write_json
 from ..util import slug
 from ..widgets.tooltip import tooltip_btn
-from installer.config import NO_WIN
 
 
 class ActionsTab:
