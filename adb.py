@@ -1,34 +1,52 @@
 # -*- coding: utf-8 -*-
-"""Shim: provides adb.shell() for tvdiag_report.py when run standalone.
+"""Заглушка adb.shell() для запуска tvdiag_report.py без GUI.
 
-The real python-adb package (google/python-adb) is a libusb1 reimplementation
-and does NOT expose adb.shell(). This shim wraps the adb.exe CLI and delegates
-the exact same adb.shell(commands, timeout=...) interface used by
-tvdiag_report.py.
+Настоящий пакет python-adb (google/python-adb) не предоставляет adb.shell():
+он работает через libusb. Здесь тот же интерфейс, что даёт Android manager,
+но команды уходят в adb.exe.
+
+adb.exe ищется так: переменная окружения ANDROID_ADB, затем папка установки
+Android manager, затем PATH.
 """
-
 import os
+import shutil
 import subprocess
 
-_ADB_EXE = r"C:\Users\kivin\AppData\Local\Android-manager\tools\adb\adb.exe"
+
+def find_adb():
+    """Путь к adb.exe: переменная окружения, папка установки или PATH."""
+    env = os.environ.get("ANDROID_ADB")
+    if env and os.path.isfile(env):
+        return env
+    local = os.environ.get("LOCALAPPDATA", "")
+    candidates = [
+        os.path.join(local, "Android-manager", "tools", "adb", "adb.exe"),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "tools", "adb", "adb.exe"),
+    ]
+    for path in candidates:
+        if path and os.path.isfile(path):
+            return path
+    return shutil.which("adb") or "adb"
+
+
+ADB_EXE = find_adb()
 
 
 def shell(commands, timeout=180):
-    """Run adb shell commands and return combined stdout+stderr as one string.
+    """Выполняет команды из многострочного текста, возвращает объединённый вывод.
 
-    `commands` is a multi-line string where each line is a separate remote shell
-    command (as produced by the COMMANDS constant in tvdiag_report.py).
-    Each line is executed independently via `adb.exe shell <cmd>`.
+    Каждая строка выполняется отдельным `adb shell <cmd>`, как в COMMANDS
+    из tvdiag_report.py.
     """
-    if not os.path.exists(_ADB_EXE):
-        raise RuntimeError("adb.exe not found: %r" % _ADB_EXE)
+    if not (os.path.isfile(ADB_EXE) or shutil.which(ADB_EXE)):
+        raise RuntimeError("adb не найден: %r. Укажите путь в ANDROID_ADB." % ADB_EXE)
     out_parts = []
     for raw in commands.strip("\n").split("\n"):
         cmd = raw.strip()
         if not cmd:
             continue
         proc = subprocess.run(
-            [_ADB_EXE, "shell", cmd],
+            [ADB_EXE, "shell", cmd],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True,

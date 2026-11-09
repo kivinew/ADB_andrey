@@ -39,6 +39,18 @@ def read_baseline(spec):
     return res.stdout.decode("utf-8")
 
 
+def default_baseline():
+    """Последний коммит, где Android_manager.pyw ещё содержал PROGRAM_SRC."""
+    log = subprocess.run(["git", "log", "--format=%H", "--", "Android_manager.pyw"],
+                         cwd=ROOT, capture_output=True, text=True)
+    for sha in log.stdout.split():
+        blob = subprocess.run(["git", "show", "%s:Android_manager.pyw" % sha], cwd=ROOT,
+                              capture_output=True)
+        if blob.returncode == 0 and "PROGRAM_SRC = r" in blob.stdout.decode("utf-8", "replace"):
+            return sha
+    raise SystemExit("Не нашёл коммит с PROGRAM_SRC. Укажите --baseline <ref|путь>")
+
+
 def split_sources(text):
     lines = text.splitlines()
     i0 = next(i for i, l in enumerate(lines) if l.startswith("PROGRAM_SRC = r"))
@@ -115,10 +127,11 @@ def interface_diff(old_App, new_App):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--baseline", default="HEAD", help="git-ссылка или путь к старому .pyw")
+    ap.add_argument("--baseline", default=None,
+                    help="git-ссылка или путь к старому .pyw (по умолчанию — последний коммит с PROGRAM_SRC)")
     args = ap.parse_args()
 
-    text = read_baseline(args.baseline)
+    text = read_baseline(args.baseline or default_baseline())
     outer_text, app_text = split_sources(text)
     app_tree = ast.parse(app_text)
     outer_tree = ast.parse(outer_text)
