@@ -1,4 +1,13 @@
 __pycache__/
+# пользовательские данные (создаются при работе программы)
+settings.json
+android_tv_export.json
+apk/
+programs/
+screenshots/
+files/
+dist/pyinstaller/
+
 *.pyc
 *.pyo
 *.pyd
