@@ -25,6 +25,6 @@ def shell(command, timeout=60):
         raise RuntimeError("adb.shell: API недоступен. Запускайте скрипт через вкладку «Скрипты».")
     return _api.shell(command, timeout=timeout)
 
-# Для совместимости с tvdiag_report.py
+# Для совместимости с android_checkup.py
 __all__ = ["shell"]
 '''

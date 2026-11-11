@@ -9,8 +9,8 @@
 | `Android_manager.pyw` | **Точка входа**: окно установки, `--cli` (без окна), `--run` (приложение), `--version`. |
 | `android_manager/` | **Приложение** (Tkinter): вкладки, виджеты, разбор `adb`, настройки. |
 | `installer/` | **Установщик**: скачивает `adb` и `scrcpy`, собирает `Android-manager.exe` через PyInstaller, ставит в `%USERPROFILE%\Android-manager`, создаёт ярлыки. |
-| `tvdiag_report.py` | **Диагностика ТВ** — одна пакетная `adb shell` команда, разбор `@@key=value`, отчёт (CPU, память, GPU, HDMI/CEC, сеть, логи, перезагрузки). Кладётся в `scripts/`. |
-| `adb.py` | Заглушка `adb.shell()` для запуска `tvdiag_report.py` без GUI (через `adb.exe`). |
+| `android_checkup.py` | **Диагностика ТВ** — одна пакетная `adb shell` команда, разбор `@@key=value`, отчёт (CPU, память, GPU, HDMI/CEC, сеть, логи, перезагрузки). Кладётся в `scripts/`. |
+| `adb.py` | Заглушка `adb.shell()` для запуска `android_checkup.py` без GUI (через `adb.exe`). |
 | `devtools/` | `smoke_gui.py` (дымовой тест окна), `build_installer.py` (один файл для раздачи), `verify_extraction.py` (сверка переноса). |
 | `PLAN_MODULES.md` | Как и зачем файл разбивался на модули (решения, риски, замеры токенов). |
 
@@ -24,7 +24,7 @@ python Android_manager.pyw
 python Android_manager.pyw --run
 
 # Диагностика устройства (нужен adb в PATH и подключенное устройство)
-python tvdiag_report.py
+python android_checkup.py
 ```
 
 Установщик одним файлом для раздачи собирается так:

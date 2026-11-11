@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Заглушка adb.shell() для запуска tvdiag_report.py без GUI.
+"""Заглушка adb.shell() для запуска android_checkup.py без GUI.
 
 Настоящий пакет python-adb (google/python-adb) не предоставляет adb.shell():
 он работает через libusb. Здесь тот же интерфейс, что даёт Android manager,
@@ -36,7 +36,7 @@ def shell(commands, timeout=180):
     """Выполняет команды из многострочного текста, возвращает объединённый вывод.
 
     Каждая строка выполняется отдельным `adb shell <cmd>`, как в COMMANDS
-    из tvdiag_report.py.
+    из android_checkup.py.
     """
     if not (os.path.isfile(ADB_EXE) or shutil.which(ADB_EXE)):
         raise RuntimeError("adb не найден: %r. Укажите путь в ANDROID_ADB." % ADB_EXE)

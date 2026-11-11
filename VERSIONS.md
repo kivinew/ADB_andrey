@@ -35,7 +35,7 @@
   - Кнопка **«Вкл. на устройстве»** для включения «Показывать касания» через `settings put system show_touches 1`
 - Скрипты (вкладка «Скрипты»):
   - Исправлен `import adb` — внедрение модуля через `sys.modules` с привязанной `shell()`
-  - Скрипт `tvdiag_report.py` работает без ошибок `ModuleNotFoundError`
+  - Скрипт `android_checkup.py` работает без ошибок `ModuleNotFoundError`
 - Установщик:
   - Контекстное меню в логе (Копировать / Копировать всё)
   - Окно установки показывает «Android manager»
