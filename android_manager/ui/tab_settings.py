@@ -87,17 +87,18 @@ class SettingsTab:
                   foreground=C["muted"], wraplength=760).grid(row=19, column=0, columnspan=2, sticky="w", pady=8)
 
     def save_settings_ui(self):
-        self.S["pc_ip"] = self.set_pc_ip.get().strip()
-        self.S["vysor_path"] = self.set_vysor.get().strip()
-        self.S["theme"] = self.set_theme.get()
-        self.S["font_size"] = self.set_font_size.get()
-        self.S["confirm_dangerous"] = self.set_confirm_dangerous.get()
-        self.S["auto_refresh_packages"] = self.set_auto_refresh.get()
-        self.S["console_history_limit"] = self.set_console_history.get()
-        self.S["console_font_size"] = self.set_console_font.get()
-        self.S["remote_sound"] = self.set_remote_sound.get()
-        save_settings(self.S)
-        self.log("Настройки сохранены")
+            self.S["pc_ip"] = self.set_pc_ip.get().strip()
+            self.S["vysor_path"] = self.set_vysor.get().strip()
+            self.S["theme"] = self.set_theme.get()
+            self.S["font_size"] = self.set_font_size.get()
+            self.S["confirm_dangerous"] = self.set_confirm_dangerous.get()
+            self.S["auto_refresh_packages"] = self.set_auto_refresh.get()
+            self.S["console_history_limit"] = self.set_console_history.get()
+            self.S["console_font_size"] = self.set_console_font.get()
+            self.S["remote_sound"] = self.set_remote_sound.get()
+            save_settings(self.S)
+            self.refresh_style()
+            self.log("Настройки сохранены")
 
     def edit_checkup_servers(self):
         """Диалог редактирования списка серверов для пинга."""

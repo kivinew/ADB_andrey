@@ -9,7 +9,7 @@ import threading
 import tkinter as tk
 from tkinter import ttk, scrolledtext
 
-from ..config import APP_TITLE, C, VERSION
+from ..config import APP_TITLE, C, VERSION, apply_theme
 from ..paths import ADB, BASE, SCRCPY
 from ..storage import load_settings, save_settings
 from ..widgets.frames import FlowFrame
@@ -36,6 +36,10 @@ class App(DialogsTab, ConnectionTab, BarsTab, AppsTab, ToolsTab, CardsTab, Procs
         self.configure(bg=C["bg"])
         self.S = load_settings()
         save_settings(self.S)
+        # Применяем настройки темы и шрифта
+        apply_theme(self.S.get("theme", "dark"))
+        self._base_font_size = self.S.get("font_size", 10)
+
         self.jobs = queue.Queue()
         self.script_q = queue.Queue()
         self.stop_ev = threading.Event()
@@ -166,6 +170,23 @@ class App(DialogsTab, ConnectionTab, BarsTab, AppsTab, ToolsTab, CardsTab, Procs
         self.bind_class("TCombobox", "<Control-KeyPress>", self._ctrl_keys)
         self.bind_class("Text", "<Control-KeyPress>", self._ctrl_keys)
 
+    # ------------------------------------------------ обновление стиля при смене настроек
+    def refresh_style(self):
+        """Перезагружает тему и шрифты после изменения настроек."""
+        apply_theme(self.S.get("theme", "dark"))
+        self._base_font_size = self.S.get("font_size", 10)
+        # Пересоздаём стили
+        self._style()
+        # Обновляем цвета корневого окна
+        self.configure(bg=C["bg"])
+        # Перерисовываем заголовок
+        self.status_lbl.configure(bg=C["head"], fg=C["err"])
+        self.devinfo.configure(bg=C["head"], fg=C["muted"])
+        # Перерисовываем вкладки и карточки
+        self.render_cards()
+        self.remote_redraw()
+        self.log(f"Тема: {self.S.get('theme', 'dark')}, шрифт: {self._base_font_size}")
+
     def _ctrl_keys(self, ev):
         if ev.keysym.lower() in ("v", "c", "x", "a"):
             return None
@@ -184,6 +205,16 @@ class App(DialogsTab, ConnectionTab, BarsTab, AppsTab, ToolsTab, CardsTab, Procs
         else:
             return None
         return "break"
+
+    # ------------------------------------------------ фон и журнал
+    def bg(self, job, done):
+        def worker():
+            try:
+                res = job()
+            except Exception as e:  # noqa: BLE001
+                res = e
+            self.jobs.put((done, res))
+        threading.Thread(target=worker, daemon=True).start()
 
     # ------------------------------------------------ интерфейс
     def _build(self):
