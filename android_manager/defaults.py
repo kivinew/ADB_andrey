@@ -137,4 +137,29 @@ DEFAULT_SETTINGS = {
     "cards": default_cards(),
     "scrcpy": {"max_size": "1920", "fps": "60", "bitrate": "8M", "codec": "h264",
                "show_touches": False, "stay_awake": True, "screen_off": False},
+    # --- новые настройки ---
+    "console_history_limit": 500,
+    "console_font_size": 10,
+    "theme": "dark",
+    "font_size": 10,
+    "auto_refresh_packages": 30,
+    "confirm_dangerous": True,
+    "remote_sound": True,
+    "checkup_servers": [
+        {"name": "market", "ip": "93.95.159.33"},
+        {"name": "api", "ip": "185.30.15.53"},
+        {"name": "epg", "ip": "93.95.152.11"},
+        {"name": "cache1", "ip": "93.95.158.1"},
+        {"name": "cache2", "ip": "93.95.158.2"},
+        {"name": "acs", "ip": "93.95.159.36"}
+    ],
+    "checkup_dns": [
+        {"host": "android-market.eltex.local", "ip": "93.95.159.33"},
+        {"host": "api-stb.example.com", "ip": "185.30.15.53"},
+        {"host": "eltex.local", "ip": "93.95.152.11"},
+        {"host": "iptv.example.com", "ip": "93.95.152.11"},
+        {"host": "iptv-cache01.example.com", "ip": "93.95.158.1"},
+        {"host": "iptv-cache02.example.com", "ip": "93.95.158.2"},
+        {"host": "acs.example.com", "ip": "93.95.159.36"}
+    ],
 }

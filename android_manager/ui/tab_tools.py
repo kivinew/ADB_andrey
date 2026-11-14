@@ -149,19 +149,22 @@ class ToolsTab:
         self.remote_redraw()
 
     def remote_press(self, b):
-        s = self.dev()
-        if not s and b.get("type") != "pc":
-            return
-        typ = b.get("type")
-        if typ == "shell":
-            self.log(f"Пульт: shell '{b.get('label', '')}'")
-            self.run_popup_cmd(b.get("label", "Команда"), str(b.get("value", "")))
-        elif typ == "pc":
-            self._exec_pc_action(b.get("label", "PC"), str(b.get("value", "")))
-        else:
-            code = int(b.get("value", 0))
-            self.log(f"Пульт: keyevent {code} ('{b.get('label', '')}')")
-            self.key(code)
+            s = self.dev()
+            if not s and b.get("type") != "pc":
+                return
+            # Звук при нажатии
+            if self.S.get("remote_sound", True):
+                self.bell()
+            typ = b.get("type")
+            if typ == "shell":
+                self.log(f"Пульт: shell '{b.get('label', '')}'")
+                self.run_popup_cmd(b.get("label", "Команда"), str(b.get("value", "")))
+            elif typ == "pc":
+                self._exec_pc_action(b.get("label", "PC"), str(b.get("value", "")))
+            else:
+                code = int(b.get("value", 0))
+                self.log(f"Пульт: keyevent {code} ('{b.get('label', '')}')")
+                self.key(code)
 
     def _exec_pc_action(self, label, cmd):
         """Выполняет команду на ПК с подстановкой {clipboard} и {serial}."""

@@ -45,8 +45,8 @@ class ConsoleTab:
         nb.add(f, text="Консоль")
         Tooltip(f, "ADB shell с подсказками, автодополнением команд и историей")
         self.console_tab = f
-        self.console = scrolledtext.ScrolledText(f, bg=C["term"], fg=C["ok"], font=("Consolas", 10),
-                                                 relief="flat", wrap="word", insertbackground=C["text"])
+        self.console = scrolledtext.ScrolledText(f, bg=C["term"], fg=C["ok"], font=("Consolas", self.S.get("console_font_size", 10)),
+                                                         relief="flat", wrap="word", insertbackground=C["text"])
         self.console.pack(fill="both", expand=True)
         quick = ttk.LabelFrame(f, text="Мои команды (ЛКМ - выполнить, ПКМ - изменить / удалить / двигать)", padding=6)
         quick.pack(fill="x", pady=(4, 0))
@@ -56,7 +56,7 @@ class ConsoleTab:
         row.pack(fill="x", pady=(4, 0))
         ttk.Label(row, text="$").pack(side="left")
         self.cmd_var = tk.StringVar()
-        self.cmd_entry = ttk.Entry(row, textvariable=self.cmd_var, font=("Consolas", 10))
+        self.cmd_entry = ttk.Entry(row, textvariable=self.cmd_var, font=("Consolas", self.S.get("console_font_size", 10)))
         self.cmd_entry.pack(side="left", fill="x", expand=True, padx=4)
         tooltip_btn(ttk.Button(row, text="Выполнить", style="Accent.TButton", command=self.shell_run),
                            "Выполнить команду из поля ввода на подключённом устройстве").pack(side="left")
@@ -66,8 +66,8 @@ class ConsoleTab:
                            "Открыть системную консоль (cmd.exe) с интерактивным adb shell").pack(side="left", padx=4)
         tooltip_btn(ttk.Button(row, text="Kill PID", command=self.kill_clipboard_pid),
                            "Убить процесс с PID из буфера обмена на устройстве").pack(side="left", padx=4)
-        self.sug = tk.Listbox(f, height=8, bg=C["panel"], fg=C["text"], font=("Consolas", 10),
-                              selectbackground=C["sel"], relief="flat", activestyle="none")
+        self.sug = tk.Listbox(f, height=8, bg=C["panel"], fg=C["text"], font=("Consolas", self.S.get("console_font_size", 10)),
+                                      selectbackground=C["sel"], relief="flat", activestyle="none")
         e = self.cmd_entry
         e.bind("<Return>", self._console_enter)
         e.bind("<Tab>", self._console_tab)
@@ -275,10 +275,15 @@ class ConsoleTab:
                 is_streaming = True
         self.hist_list.append(cmd)
         self.hist_i = len(self.hist_list)
+        # Ограничение истории
+        limit = self.S.get("console_history_limit", 500)
+        if len(self.hist_list) > limit:
+            self.hist_list = self.hist_list[-limit:]
+            self.hist_i = len(self.hist_list)
         self.cmd_var.set("")
-        self.console.insert("end", f"$ {cmd}\n")
+        self.console.insert("end", f"$ {cmd}\\n")
         self.console.see("end")
-
+        
         if is_streaming:
             self._start_streaming(cmd, s)
         else:
@@ -287,13 +292,13 @@ class ConsoleTab:
                 self._run_direct_logcat(cmd, s)
             else:
                 api = ScriptAPI(s, "", threading.Event())
-
+        
                 def done(res):
                     text = res if isinstance(res, str) else f"Ошибка: {res}"
                     if text.strip():
                         self.console.insert("end", text.rstrip() + "\n")
-                    self.console.see("end")
-
+                        self.console.see("end")
+        
                 self.bg(lambda: api.shell(cmd, timeout=120), done)
 
     def _run_direct_logcat(self, cmd, serial):
