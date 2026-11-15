@@ -35,6 +35,15 @@ SUBCMDS = {
 PKG_CMDS = ("pm", "am", "monkey")
 PKG_SUBS = ("clear", "uninstall", "disable-user", "enable", "path", "force-stop", "start", "-p")
 
+# Буфер консоли: без ограничения вставка в tk.Text замедляется по мере роста,
+# а see("end") на каждой строке перерисовывает весь виджет.
+CONSOLE_MAX_LINES = 20000
+CONSOLE_TRIM_TO = 15000
+# Сколько строк максимум попадает в виджет за один тик поллера (одна вставка на тик).
+STREAM_DRAIN_PER_TICK = 500
+# Очередь стрима: если UI не успевает, старые строки отбрасываются, а не копятся.
+STREAM_QUEUE_MAX = 5000
+
 
 class ConsoleTab:
     """Mix-in для App: методы этого раздела окна."""
@@ -284,41 +293,20 @@ class ConsoleTab:
         self.console.insert("end", f"$ {cmd}\\n")
         self.console.see("end")
         
-        if is_streaming:
+        if is_streaming or cmd.startswith("logcat"):
+            # logcat -d/-t тоже идёт через стриминг: буферизовать дамп нельзя — на
+            # медленной приставке adb logcat -d успевает отдать мегабайты, и один
+            # большой insert в Text подвешивает интерфейс.
             self._start_streaming(cmd, s)
         else:
-            # logcat -c / -d / -t: запускать напрямую через adb logcat (не shell)
-            if cmd.startswith("logcat") and any(p in ("-c", "-d", "-t", "--clear", "--dump") for p in cmd.split()):
-                self._run_direct_logcat(cmd, s)
-            else:
-                api = ScriptAPI(s, "", threading.Event())
+            api = ScriptAPI(s, "", threading.Event())
         
-                def done(res):
-                    text = res if isinstance(res, str) else f"Ошибка: {res}"
-                    if text.strip():
-                        self.console.insert("end", text.rstrip() + "\n")
-                        self.console.see("end")
+            def done(res):
+                text = res if isinstance(res, str) else f"Ошибка: {res}"
+                if text.strip():
+                    self._append_console(text.rstrip())
         
-                self.bg(lambda: api.shell(cmd, timeout=120), done)
-
-    def _run_direct_logcat(self, cmd, serial):
-        """Запускает logcat -c/-d/-t напрямую через adb logcat (быстро, без shell)."""
-        def done(res):
-            # run() возвращает (rc, out, err)
-            if isinstance(res, tuple) and len(res) == 3:
-                rc, out, err = res
-                text = (out + err).strip()
-                if rc != 0 and text:
-                    text = f"Ошибка (код {rc}): {text}"
-            elif isinstance(res, str):
-                text = res
-            else:
-                text = f"Ошибка: {res}"
-            if text.strip():
-                self.console.insert("end", text.rstrip() + "\n")
-            self.console.see("end")
-
-        self.bg(lambda: run([ADB, "-s", serial] + cmd.split(), 30), done)
+            self.bg(lambda: api.shell(cmd, timeout=120), done)
 
     def _start_streaming(self, cmd, serial):
         """Запускает команду с непрерывным выводом (logcat, dmesg -w, top и т.д.)."""
@@ -328,18 +316,39 @@ class ConsoleTab:
 
         self.stream_proc = None
         self.stream_stop = threading.Event()
-        self._stream_queue = queue.Queue()
+        self._stream_queue = queue.Queue(maxsize=STREAM_QUEUE_MAX)
 
         # Если в команде есть shell-операторы (|, >, >>, &&, ||, ;), запускаем через shell
         shell_ops = ("|", ">", ">>", "&&", "||", ";")
         use_shell = any(op in cmd for op in shell_ops)
 
-        # Для logcat используем прямой adb logcat (без shell) — стримит сразу
-        # НО если есть pipe/операторы — нужно через shell
+        # Для logcat используем прямой adb logcat (без shell) — стримит сразу.
+        # Аргументы команды сохраняются: раньше [.., "logcat"] их терял.
         if cmd.startswith("logcat") and not use_shell:
-            adb_cmd = [ADB, "-s", serial, "logcat"]
+            adb_cmd = [ADB, "-s", serial] + cmd.split()
         else:
             adb_cmd = [ADB, "-s", serial, "shell", cmd]
+
+        def push(item):
+            """Кладёт строку в очередь; если UI не успевает — отбрасывает её."""
+            try:
+                self._stream_queue.put_nowait(item)
+            except queue.Full:
+                pass
+
+        def push_end(msg):
+            """Служебное сообщение терять нельзя, поэтому при полной очереди
+            освобождает место, сбрасывая самую старую строку. Цикл ограничен:
+            если очередь никто не разбирает, поток не должен зависнуть."""
+            for _ in range(STREAM_QUEUE_MAX + 1):
+                try:
+                    self._stream_queue.put_nowait(("__END__", msg))
+                    return
+                except queue.Full:
+                    try:
+                        self._stream_queue.get_nowait()
+                    except queue.Empty:
+                        pass
 
         def reader():
             try:
@@ -349,42 +358,30 @@ class ConsoleTab:
                     adb_cmd,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
-                    bufsize=0,  # unbuffered
+                    bufsize=1,  # построчно: read(4096) в текстовом режиме ждал бы 4096 символов
                     universal_newlines=True,
                     encoding="utf-8",
                     errors="replace",
                     creationflags=NO_WIN,
                     env=env
                 )
-                # Читаем по символам для мгновенного вывода
                 while True:
                     if self.stream_stop.is_set():
                         break
-                    chunk = self.stream_proc.stdout.read(4096)
-                    if not chunk:
+                    line = self.stream_proc.stdout.readline()
+                    if not line:
                         break
-                    # Разбиваем на строки
-                    lines = chunk.splitlines(True)
-                    for line in lines:
-                        if line.endswith("\n"):
-                            self._stream_queue.put(line.rstrip("\n"))
-                        else:
-                            # Неполная строка - накопить или выводить как есть
-                            self._stream_queue.put(line.rstrip("\n"))
+                    push(line.rstrip("\n"))
                 rc = self.stream_proc.wait()
                 if not self.stream_stop.is_set():
-                    self._stream_queue.put(("__END__", f"[завершено с кодом {rc}]"))
+                    push_end(f"[завершено с кодом {rc}]")
             except Exception as e:
-                self._stream_queue.put(("__END__", f"[ошибка: {e}]"))
+                push_end(f"[ошибка: {e}]")
 
         def stop_streaming():
-            if self.stream_proc and self.stream_proc.poll() is None:
-                self.stream_stop.set()
-                try:
-                    self.stream_proc.terminate()
-                except Exception:
-                    pass
-                self._stream_queue.put(("__END__", "[остановлено пользователем]"))
+            self.stream_stop.set()
+            self._kill_stream_proc()
+            push_end("[остановлено пользователем]")
 
         def on_stream_end(msg):
             self._append_console(msg)
@@ -408,15 +405,27 @@ class ConsoleTab:
         self._stream_polling = True
         self._poll_stream_queue()
 
+    def _kill_stream_proc(self):
+        """Гасит дерево процессов стрима. На Windows terminate() не рвёт pipe, и ридер
+        остаётся висеть в readline() до закрытия adb — отсюда зависание на десятки
+        секунд после «Стоп»."""
+        proc = getattr(self, "stream_proc", None)
+        if proc is None or proc.poll() is not None:
+            return
+        try:
+            if os.name == "nt":
+                subprocess.run(["taskkill", "/F", "/T", "/PID", str(proc.pid)],
+                               capture_output=True, creationflags=NO_WIN, timeout=10)
+            else:
+                proc.terminate()
+        except Exception:  # noqa: BLE001 - процесс мог уже умереть
+            pass
+
     def _stop_current_streaming(self):
         """Останавливает текущую стриминговую сессию и убирает кнопку."""
         if hasattr(self, 'stream_stop'):
             self.stream_stop.set()
-        if hasattr(self, 'stream_proc') and self.stream_proc and self.stream_proc.poll() is None:
-            try:
-                self.stream_proc.terminate()
-            except Exception:
-                pass
+        self._kill_stream_proc()
         if hasattr(self, '_stream_stop_btn'):
             try:
                 self._stream_stop_btn.pack_forget()
@@ -425,21 +434,39 @@ class ConsoleTab:
         self._stream_polling = False
 
     def _poll_stream_queue(self):
-        """Периодически забирает строки из очереди и пишет в консоль."""
+        """Забирает строки из очереди пачкой не больше STREAM_DRAIN_PER_TICK за тик.
+        Одна вставка на тик вместо вставки на строку: logcat быстрее интерфейса, и
+        построчная вставка занимала UI-поток целиком."""
         if not getattr(self, '_stream_polling', False):
             return
+        batch = []
+        ended = None
         try:
-            while True:
+            while len(batch) < STREAM_DRAIN_PER_TICK:
                 item = self._stream_queue.get_nowait()
                 if isinstance(item, tuple) and item[0] == "__END__":
-                    self._on_stream_end(item[1])
-                    return
-                self._append_console(item)
+                    ended = item[1]
+                    break
+                batch.append(item)
         except queue.Empty:
             pass
+        if batch:
+            self.console.insert("end", "\n".join(batch) + "\n")
+            self.console.see("end")
+            self._trim_console()
+        if ended is not None:
+            self._on_stream_end(ended)
+            return
         if self._stream_polling:
             self.after(50, self._poll_stream_queue)
 
     def _append_console(self, text):
         self.console.insert("end", text + "\n")
         self.console.see("end")
+        self._trim_console()
+
+    def _trim_console(self):
+        """Оставляет в буфере не больше CONSOLE_TRIM_TO строк, удаляя самые старые."""
+        total = int(self.console.index("end-1c").split(".")[0])
+        if total > CONSOLE_MAX_LINES:
+            self.console.delete("1.0", f"{total - CONSOLE_TRIM_TO + 1}.0")

@@ -15,35 +15,48 @@ class FlowFrame(ttk.Frame):
         super().__init__(master, **kw)
         self.gap = gap
         self.items = []
-        self._relayout_lock = False
-        self.bind("<Configure>", lambda e: self.after_idle(self.relayout))
+        self._job = None
+        self._force = False
+        self._last_width = 0
+        self.bind("<Configure>", self._queue_relayout)
+
+    def _queue_relayout(self, _event=None, force=False):
+        """Один relayout на пачку событий: при перетаскивании границы окна Tk
+        успевает прислать десятки <Configure>, а winfo_reqwidth на каждого
+        ребёнка — отдельный запрос к интерпретатору."""
+        self._force = self._force or force
+        if self._job is None:
+            self._job = self.after(30, self._run_relayout)
+
+    def _run_relayout(self):
+        self._job = None
+        force, self._force = self._force, False
+        self.relayout(force=force)
 
     def add(self, widget):
         self.items.append(widget)
-        self.after_idle(self.relayout)
+        self._queue_relayout(force=True)
         return widget
 
-    def relayout(self):
-        # Debounce: prevent multiple rapid calls during window resize
-        if self._relayout_lock:
+    def relayout(self, force=False):
+        width = self.winfo_width()
+        if width <= 1 or (width == self._last_width and not force):
             return
-        self._relayout_lock = True
-        try:
-            self.items = [w for w in self.items if w is not None and w.winfo_exists()]
-            sizes = [(w.winfo_reqwidth(), w.winfo_reqheight()) for w in self.items]
-            pos, total = flow_layout(sizes, self.winfo_width(), self.gap)
-            for w, (x, y) in zip(self.items, pos):
-                w.place(x=x, y=y)
-            h = max(total, 1)
-            if int(float(self.cget("height") or 0)) != h:
-                self.configure(height=h)
-        finally:
-            self._relayout_lock = False
+        self._last_width = width
+        self.items = [w for w in self.items if w is not None and w.winfo_exists()]
+        sizes = [(w.winfo_reqwidth(), w.winfo_reqheight()) for w in self.items]
+        pos, total = flow_layout(sizes, width, self.gap)
+        for w, (x, y) in zip(self.items, pos):
+            w.place(x=x, y=y)
+        h = max(total, 1)
+        if int(float(self.cget("height") or 0)) != h:
+            self.configure(height=h)
 
     def clear(self):
         for w in self.items:
             w.destroy()
         self.items = []
+        self._last_width = 0
         self.configure(height=1)
 
 

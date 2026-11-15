@@ -24,6 +24,7 @@ class RemoteWindow(tk.Toplevel):
         self.drag = None
         self.moved = False
         self.scale, self.ox, self.oy = 1.0, 0, 0
+        self._draw_job = None
         head = FlowFrame(self, gap=4)
         head.pack(fill="x", padx=6, pady=6)
         self.box = ttk.Combobox(head, textvariable=app.remote_var, state="readonly", width=28)
@@ -45,7 +46,7 @@ class RemoteWindow(tk.Toplevel):
                            "Удалить текущий пульт"))
         self.canvas = tk.Canvas(self, bg=C["bg"], highlightthickness=0)
         self.canvas.pack(fill="both", expand=True, padx=4, pady=(0, 4))
-        self.canvas.bind("<Configure>", lambda e: self.draw())
+        self.canvas.bind("<Configure>", self._queue_draw)
         self.canvas.bind("<ButtonPress-1>", self._press)
         self.canvas.bind("<B1-Motion>", self._motion)
         self.canvas.bind("<ButtonRelease-1>", self._release)
@@ -56,6 +57,17 @@ class RemoteWindow(tk.Toplevel):
     def _initial_draw(self):
         """Принудительная перерисовка после того, как окно получило размер."""
         self.update_idletasks()
+        self.draw()
+
+    def _queue_draw(self, _event=None):
+        """Перерисовка не чаще 30 раз в секунду: во время изменения размера окна
+        draw() пересоздаёт все овалы и подписи, и без задержки это заметно тормозит."""
+        if self._draw_job is not None:
+            self.after_cancel(self._draw_job)
+        self._draw_job = self.after(30, self._draw_now)
+
+    def _draw_now(self):
+        self._draw_job = None
         self.draw()
 
     def close(self):
