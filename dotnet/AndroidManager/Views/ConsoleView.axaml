@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="AndroidManager.Views.ConsoleView">
+  <Grid RowDefinitions="*,Auto" Margin="8">
+    <Border Grid.Row="0" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="10"
+            ClipToBounds="True">
+      <ListBox x:Name="Output" Background="{DynamicResource Term}" FontFamily="Consolas"
+               ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
+    </Border>
+
+    <StackPanel Grid.Row="1" Spacing="4" Margin="0,6,0,0">
+      <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+        <StackPanel x:Name="QuickBar" Orientation="Horizontal" />
+      </ScrollViewer>
+
+      <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="6">
+        <TextBlock Grid.Column="0" Text="$" VerticalAlignment="Center" FontFamily="Consolas" />
+        <TextBox Grid.Column="1" x:Name="CmdBox" FontFamily="Consolas" />
+        <Button Grid.Column="2" x:Name="RunBtn" Content="Выполнить" />
+        <Button Grid.Column="3" x:Name="StopBtn" Content="Стоп" IsEnabled="False" />
+        <Button Grid.Column="4" x:Name="ClearBtn" Content="Очистить" />
+      </Grid>
+    </StackPanel>
+  </Grid>
+</UserControl>

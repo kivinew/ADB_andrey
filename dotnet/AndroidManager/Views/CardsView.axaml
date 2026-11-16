@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:AndroidManager.Controls"
+             x:Class="AndroidManager.Views.CardsView">
+  <Grid RowDefinitions="Auto,*" Margin="8" RowSpacing="6">
+
+    <WrapPanel Grid.Row="0" Orientation="Horizontal">
+      <Button x:Name="RefreshBtn" Content="Обновить сейчас" Margin="0,0,6,0" />
+      <CheckBox x:Name="AutoBox" Content="Обновлять каждые 3 с" IsChecked="True" Margin="0,0,12,0" />
+      <Button x:Name="ResetBtn" Content="Сбросить к стандартным" Margin="0,0,6,0" />
+    </WrapPanel>
+
+    <ScrollViewer Grid.Row="1">
+      <ItemsControl x:Name="Cards">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Width="220" Height="100" Margin="0,0,10,10" Padding="10"
+                    Background="{DynamicResource Panel}" BorderBrush="{DynamicResource Border}"
+                    BorderThickness="1" CornerRadius="10">
+              <Grid RowDefinitions="Auto,*,Auto">
+                <TextBlock Grid.Row="0" Text="{Binding Title}" Foreground="{DynamicResource Muted}"
+                           TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Row="1" Text="{Binding Value}" FontSize="16" FontWeight="Bold"
+                           VerticalAlignment="Center" />
+                <controls:Sparkline Grid.Row="2" Height="26" Values="{Binding Points}"
+                                    Max="{Binding Max}" LineBrush="{Binding Color}" />
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

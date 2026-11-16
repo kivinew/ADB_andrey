@@ -12,7 +12,6 @@
 | `android_checkup.py` | **Диагностика ТВ** — одна пакетная `adb shell` команда, разбор `@@key=value`, отчёт (CPU, память, GPU, HDMI/CEC, сеть, логи, перезагрузки). Кладётся в `scripts/`. |
 | `adb.py` | Заглушка `adb.shell()` для запуска `android_checkup.py` без GUI (через `adb.exe`). |
 | `devtools/` | `smoke_gui.py` (дымовой тест окна), `build_installer.py` (один файл для раздачи), `verify_extraction.py` (сверка переноса). |
-| `PLAN_MODULES.md` | Как и зачем файл разбивался на модули (решения, риски, замеры токенов). |
 
 ## Быстрый старт
 

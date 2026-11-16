@@ -1,0 +1,143 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="AndroidManager.App"
+             RequestedThemeVariant="Dark">
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <!-- Catppuccin Mocha. Светлая тема — парная Latte, чтобы переключение не меняло
+             само семейство цветов. -->
+        <ResourceDictionary x:Key="Dark">
+          <!-- Запрет UI — тёмная тема (tokens.css) -->
+          <SolidColorBrush x:Key="Bg" Color="#060A1C" />
+          <SolidColorBrush x:Key="Head" Color="#060A1C" />
+          <SolidColorBrush x:Key="HeadText" Color="#2EE6F6" />
+          <SolidColorBrush x:Key="Bar" Color="#060A1C" />
+          <SolidColorBrush x:Key="Panel" Color="#0E1226" />
+          <SolidColorBrush x:Key="Border" Color="#248C96E6" />
+          <SolidColorBrush x:Key="Text" Color="#ECEEFB" />
+          <SolidColorBrush x:Key="Muted" Color="#9097C0" />
+          <SolidColorBrush x:Key="Accent" Color="#B79CFF" />
+          <SolidColorBrush x:Key="Ok" Color="#2EE6F6" />
+          <SolidColorBrush x:Key="Warn" Color="#F5923E" />
+          <SolidColorBrush x:Key="Err" Color="#FF6B8A" />
+          <SolidColorBrush x:Key="Term" Color="#181C3A" />
+          <SolidColorBrush x:Key="Sel" Color="#B79CFF" />
+          <SolidColorBrush x:Key="ButtonText" Color="#2A1060" />
+          <SolidColorBrush x:Key="Card" Color="#0F1429" />
+          <SolidColorBrush x:Key="Field" Color="#181C3A" />
+          <SolidColorBrush x:Key="Sidebar" Color="#0A0E22" />
+          <SolidColorBrush x:Key="SidebarActive" Color="#1B1F40" />
+          <SolidColorBrush x:Key="BorderDim" Color="#8C96E624" />
+          <SolidColorBrush x:Key="BorderStrong" Color="#8C96E647" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Light">
+          <!-- Запрет UI — светлая тема (парная) -->
+          <SolidColorBrush x:Key="Bg" Color="#F4F6FB" />
+          <SolidColorBrush x:Key="Head" Color="#F4F6FB" />
+          <SolidColorBrush x:Key="HeadText" Color="#2EE6F6" />
+          <SolidColorBrush x:Key="Bar" Color="#F4F6FB" />
+          <SolidColorBrush x:Key="Panel" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="Border" Color="#478C96E6" />
+          <SolidColorBrush x:Key="Text" Color="#1A1D33" />
+          <SolidColorBrush x:Key="Muted" Color="#5D6390" />
+          <SolidColorBrush x:Key="Accent" Color="#B79CFF" />
+          <SolidColorBrush x:Key="Ok" Color="#2EE6F6" />
+          <SolidColorBrush x:Key="Warn" Color="#F5923E" />
+          <SolidColorBrush x:Key="Err" Color="#FF6B8A" />
+          <SolidColorBrush x:Key="Term" Color="#ECEEFB" />
+          <SolidColorBrush x:Key="Sel" Color="#B79CFF" />
+          <SolidColorBrush x:Key="ButtonText" Color="#2A1060" />
+          <SolidColorBrush x:Key="Card" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="Field" Color="#F4F6FB" />
+          <SolidColorBrush x:Key="Sidebar" Color="#F4F6FB" />
+          <SolidColorBrush x:Key="SidebarActive" Color="#E8EBF3" />
+          <SolidColorBrush x:Key="BorderDim" Color="#478C96E6" />
+          <SolidColorBrush x:Key="BorderStrong" Color="#478C96B3" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+  <Application.Styles>
+    <FluentTheme />
+
+    <!-- Шрифт Manrope с fallback на Segoe UI -->
+    <!-- Кнопки (primary = violet фон, ghost = прозрачный с cyan обводкой) -->
+    <Style Selector="Button.btn--primary">
+      <Setter Property="CornerRadius" Value="18" />
+      <Setter Property="Background" Value="{DynamicResource Accent}" />
+      <Setter Property="Foreground" Value="{DynamicResource ButtonText}" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="Padding" Value="22 12" />
+    </Style>
+    <Style Selector="Button.btn--ghost">
+      <Setter Property="CornerRadius" Value="18" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource HeadText}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDim}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Padding" Value="14 8" />
+    </Style>
+    <Style Selector="Button.icon-btn">
+      <Setter Property="CornerRadius" Value="14" />
+      <Setter Property="Background" Value="{DynamicResource Field}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDim}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+      <Setter Property="Width" Value="48" />
+      <Setter Property="Height" Value="48" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <!-- Вкладки -->
+    <Style Selector="TabItem">
+      <Setter Property="Foreground" Value="{DynamicResource Muted}" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="FontSize" Value="13" />
+    </Style>
+    <Style Selector="TabItem:selected">
+      <Setter Property="Foreground" Value="{DynamicResource HeadText}" />
+    </Style>
+
+    <!-- Карточки -->
+    <Style Selector="Border.card">
+      <Setter Property="CornerRadius" Value="28" />
+      <Setter Property="Background" Value="{DynamicResource Card}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDim}" />
+      <Setter Property="BorderThickness" Value="1.5" />
+      <Setter Property="Padding" Value="24" />
+    </Style>
+
+    <!-- Панели -->
+    <Style Selector="Border.panel">
+      <Setter Property="CornerRadius" Value="34" />
+      <Setter Property="Background" Value="{DynamicResource Panel}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDim}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Padding" Value="32 48 48 48" />
+    </Style>
+
+    <!-- Поля ввода / выпадающие списки -->
+    <Style Selector="ComboBox">
+      <Setter Property="CornerRadius" Value="18" />
+      <Setter Property="Background" Value="{DynamicResource Field}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDim}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="Padding" Value="18 12" />
+      <Setter Property="FontSize" Value="14" />
+    </Style>
+
+    <!-- Бейдж статуса -->
+    <Style Selector="Border.badge">
+      <Setter Property="CornerRadius" Value="999" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderStrong}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Padding" Value="7 4" />
+    </Style>
+  </Application.Styles>
+</Application>

@@ -17,7 +17,7 @@ python devtools/smoke_gui.py --scripts  # + запуск скрипта чере
 python devtools/build_installer.py    # собрать dist/Android_manager.pyw (установщик одним файлом)
 python devtools/verify_extraction.py --baseline <git-ref>   # сверить пакеты с исходным файлом
 python -m compileall -q android_manager installer
-python -m unittest discover -s tests -v                     # 64 теста
+python -m unittest discover -s tests -v                     # 72 теста
 ```
 
 ## Где что лежит

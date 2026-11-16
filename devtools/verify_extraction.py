@@ -24,7 +24,7 @@ INST_DIR = os.path.join(ROOT, "installer")
 
 SKIP = {"main", "build_program", "App", "PROGRAM_SRC", "ADB_PY_PATH", "InstallError",
         # осознанные отличия после переноса: путь к данным считается от пакета,
-        # а не от файла-скрипта (см. PLAN_MODULES.md, §8.1)
+        # а не от файла-скрипта
         "app_dir"}
 
 

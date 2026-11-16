@@ -1,0 +1,30 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="AndroidManager.Views.AppsView">
+  <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="8" RowSpacing="6">
+
+    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="6">
+      <TextBlock Grid.Column="0" Text="Фильтр:" VerticalAlignment="Center" />
+      <TextBox Grid.Column="1" x:Name="FilterBox" />
+      <ComboBox Grid.Column="2" x:Name="ScopeBox" Width="190" />
+      <Button Grid.Column="3" x:Name="RefreshBtn" Content="Обновить" />
+    </Grid>
+
+    <TextBlock Grid.Row="1" x:Name="CountLabel" Text="Приложения не загружены"
+               Foreground="{DynamicResource Muted}" />
+
+    <Border Grid.Row="2" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="10"
+            ClipToBounds="True">
+      <ListBox x:Name="PkgList" SelectionMode="Multiple" />
+    </Border>
+
+    <WrapPanel Grid.Row="3" Orientation="Horizontal">
+      <Button x:Name="RunBtn" Content="Запустить" Margin="0,0,6,0" />
+      <Button x:Name="StopBtn" Content="Закрыть" Margin="0,0,6,0" />
+      <Button x:Name="ClearBtn" Content="Очистить данные" Margin="0,0,6,0" />
+      <Button x:Name="DisableBtn" Content="Отключить" Margin="0,0,6,0" />
+      <Button x:Name="EnableBtn" Content="Включить" Margin="0,0,6,0" />
+      <Button x:Name="UninstallBtn" Content="Удалить" Margin="0,0,6,0" />
+    </WrapPanel>
+  </Grid>
+</UserControl>

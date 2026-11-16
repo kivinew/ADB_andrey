@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="AndroidManager.Views.SettingsView">
+  <ScrollViewer>
+    <StackPanel Margin="16" Spacing="8" MaxWidth="720" HorizontalAlignment="Left">
+
+      <TextBlock Text="Настройки" FontSize="15" FontWeight="Bold" />
+
+      <TextBlock Text="Тема" Margin="0,8,0,0" />
+      <ComboBox x:Name="ThemeBox" Width="200" HorizontalAlignment="Left" />
+
+      <TextBlock Text="Шрифт интерфейса" />
+      <ComboBox x:Name="FontBox" Width="200" HorizontalAlignment="Left" />
+
+      <TextBlock Text="Размер шрифта интерфейса (8–20)" />
+      <TextBox x:Name="FontSizeBox" Width="120" HorizontalAlignment="Left" />
+
+      <TextBlock Text="Размер шрифта консоли (8–20)" />
+      <TextBox x:Name="ConsoleFontBox" Width="120" HorizontalAlignment="Left" />
+
+      <TextBlock Text="Лимит истории команд (50–5000)" />
+      <TextBox x:Name="HistoryBox" Width="120" HorizontalAlignment="Left" />
+
+      <TextBlock Text="Автообновление списка пакетов, сек (0 — выключено)" />
+      <TextBox x:Name="AutoRefreshBox" Width="120" HorizontalAlignment="Left" />
+
+      <CheckBox x:Name="ConfirmBox" Content="Подтверждать опасные действия" Margin="0,8,0,0" />
+
+      <TextBlock Text="IP этого ПК (пусто — определять самому)" Margin="0,8,0,0" />
+      <TextBox x:Name="PcIpBox" />
+
+      <TextBlock Text="Путь к Vysor" />
+      <TextBox x:Name="VysorBox" />
+
+      <Button x:Name="SaveBtn" Content="Сохранить" Margin="0,12,0,0" />
+
+      <TextBlock x:Name="PathLabel" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" />
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

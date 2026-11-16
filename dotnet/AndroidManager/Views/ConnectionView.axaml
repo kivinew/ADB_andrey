@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="AndroidManager.Views.ConnectionView">
+  <ScrollViewer>
+    <StackPanel Margin="16" Spacing="10" MaxWidth="780" HorizontalAlignment="Left">
+
+      <TextBlock Text="Подключение" FontSize="15" FontWeight="Bold" />
+
+      <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,10">
+        <TextBlock Text="Устройство:" VerticalAlignment="Center" Foreground="{DynamicResource Muted}" />
+        <ComboBox x:Name="DeviceBox" Width="230" VerticalAlignment="Center" />
+        <Button x:Name="RefreshBtn" Content="Обновить" VerticalAlignment="Center" />
+      </StackPanel>
+
+      <TextBlock Text="IP или URL устройства" />
+      <TextBox x:Name="HostBox" />
+
+      <TextBlock Text="Порт" />
+      <TextBox x:Name="PortBox" Width="150" HorizontalAlignment="Left" />
+
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button x:Name="ConnectBtn" Content="Подключить" />
+        <Button x:Name="DisconnectBtn" Content="Отключить" />
+        <Button x:Name="PairBtn" Content="Сопрячь..." />
+      </StackPanel>
+
+      <TextBlock Text="История подключений (10 последних)" />
+      <ComboBox x:Name="HistoryBox" HorizontalAlignment="Stretch" />
+
+      <TextBlock Text="Избранное" />
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <ComboBox x:Name="FavBox" Width="380" />
+        <Button x:Name="FavAddBtn" Content="Добавить текущее" />
+      </StackPanel>
+
+      <Border Background="{DynamicResource Panel}" BorderBrush="{DynamicResource Border}"
+              BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,8,0,0">
+        <StackPanel Spacing="4">
+          <TextBlock x:Name="InfoTitle" Text="Устройство не выбрано" FontWeight="Bold" />
+          <TextBlock x:Name="InfoText" Foreground="{DynamicResource Muted}" TextWrapping="Wrap"
+                     Text="Выберите устройство в списке сверху или подключитесь по IP:порт." />
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

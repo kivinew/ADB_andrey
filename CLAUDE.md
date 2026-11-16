@@ -28,6 +28,14 @@ python devtools/build_installer.py      # -> dist/Android_manager.pyw (один 
 python devtools/verify_extraction.py --baseline <git-ref>   # сверить перенос по AST
 ```
 
+C#-версия (папка `dotnet/`), если нужен GPU-рендеринг и неблокирующая консоль:
+
+```bash
+"/c/Program Files/dotnet/dotnet.exe" build dotnet/AndroidManager
+"/c/Program Files/dotnet/dotnet.exe" run   dotnet/AndroidManager
+"/c/Program Files/dotnet/dotnet.exe" run   dotnet/AndroidManager.SelfCheck   # 38 тестов ядра
+```
+
 GUI-тестов в `tests/` нет: окно проверяется только через `devtools/smoke_gui.py` (нужен
 дисплей) или руками. Вся логика, доступная без окна, должна быть покрыта юнит-тестами.
 
@@ -93,6 +101,58 @@ GUI-тестов в `tests/` нет: окно проверяется тольк�
 проходит `migrate_settings`. `make_bundle`/`apply_bundle` — экспорт/импорт: формат
 `android-tv-bundle`, тексты скриптов едут внутри бандла, при конфликте имён создаётся
 копия через `unique_path`, чужие элементы панелей и пультов добавляются, а не заменяют.
+
+## C#-порт (`dotnet/`)
+
+Порт идёт отдельным деревом; Python-приложение остаётся рабочим и служит эталоном. Цель
+порта — GPU-рендеринг, виртуализация списков и живая смена тем/шрифтов, а не скорость:
+исходные зависания были архитектурными и уже исправлены в Python.
+
+- `dotnet/AndroidManager/` — демо Avalonia (.NET 10): тема, шрифт, неблокируемый поток.
+  Это стенд для проверки подходов, а не будущий интерфейс.
+- `dotnet/AndroidManager.Core/` — `Adb/` (обёртка над `adb`, `(rc, out, err)` без
+  исключений, таймаут = -2, нет файла = -1) и `Parsing/` (перенос `parsing.py` один в один).
+- `dotnet/AndroidManager.Core.Tests/` — 31 тест, порт `tests/test_parsing.py`.
+- `dotnet/AndroidManager.SelfCheck/` — консольный раннер тех же `[Fact]`.
+
+```bash
+dotnet run --project dotnet/AndroidManager                  # демо (окно)
+dotnet run --project dotnet/AndroidManager.SelfCheck        # 31 тест, текстовая сводка
+dotnet test dotnet/AndroidManager.Core.Tests                # каноничный запуск
+```
+
+`testhost` на этой машине падает с `Access is denied` на `OpenProcess` процесса-родителя —
+и с AnyCPU, и с `PlatformTarget=x64`, до запуска любого теста. Поэтому здесь тесты гоняет
+`AndroidManager.SelfCheck`: он находит те же `[Fact]` рефлексией и вызывает их. Тестовый
+проект остаётся каноничным — в нормальном окружении и в CI он идёт через `dotnet test`.
+
+Ловушки переноса с Python: `//` — это flooring, а не усечение (есть `Num.FloorDiv`);
+новый процесс в `parse_proc_output` получает `dp = 0`, а не «тики минус ноль»; `f"{x:.0f}"` —
+это не `"{x}"`, иначе в русской локали выйдет «2,5» вместо «2».
+
+Открытый вопрос: вкладка «Скрипты» исполняет Python через `import adb`. Для C#-версии это
+Roslyn (ломает совместимость), Python.NET (Python остаётся в проекте) или внешний процесс.
+
+## C#-порт (dotnet/)
+
+`dotnet/` — порт на C#/.NET 10 + Avalonia 11, живёт отдельно и не влияет на Python-версию.
+`Android_manager.pyw` и `android_checkup.py` остаются на Python.
+
+- `AndroidManager.Core` — логика без UI, по смыслу повторяет `android_manager`: `Parsing/`
+  (те же чистые функции над выводом adb), `Adb/` (`AdbRunner`, `AdbClient`, `AdbStream`,
+  `ProcessKill`), `Devices/`, `Settings/` (`AppSettings`, `Defaults`).
+- `AndroidManager` — оболочка Avalonia: `MainWindow` держит выбор устройства в шапке (он нужен
+  всем вкладкам), пять вкладок в `Views/` — Подключение, Консоль, Приложения, Карточки,
+  Настройки. `Controls/Sparkline` рисует графики на GPU. `Services/` — `AppState` (общее
+  состояние) и `UiDialogs` (Подтверждение/Сопряжение).
+- `AndroidManager.Core.Tests` — xUnit. `dotnet test` на этой машине не работает (testhost падает
+  на `OpenProcess` Access Denied), поэтому тесты запускаются своим раннером:
+  `AndroidManager.SelfCheck`, который находит методы `Fact` и вызывает их сам. Новый тест —
+  просто метод с `[Fact]` в `AndroidManager.Core.Tests`.
+
+Настройки C#-версии — `settings.json` рядом с exe: у неё своя папка, с Python-версией и её
+настройками они не пересекаются. Ключи в файле snake_case, как у Python-версии, чтобы файлы
+было видно глазами рядом.
 
 ## Правила
 
