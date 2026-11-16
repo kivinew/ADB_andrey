@@ -8,28 +8,29 @@
         <!-- Catppuccin Mocha. Светлая тема — парная Latte, чтобы переключение не меняло
              само семейство цветов. -->
         <ResourceDictionary x:Key="Dark">
-          <!-- Запрет UI — тёмная тема (tokens.css) -->
-          <SolidColorBrush x:Key="Bg" Color="#060A1C" />
-          <SolidColorBrush x:Key="Head" Color="#060A1C" />
-          <SolidColorBrush x:Key="HeadText" Color="#2EE6F6" />
-          <SolidColorBrush x:Key="Bar" Color="#060A1C" />
-          <SolidColorBrush x:Key="Panel" Color="#0E1226" />
-          <SolidColorBrush x:Key="Border" Color="#248C96E6" />
-          <SolidColorBrush x:Key="Text" Color="#ECEEFB" />
-          <SolidColorBrush x:Key="Muted" Color="#9097C0" />
-          <SolidColorBrush x:Key="Accent" Color="#B79CFF" />
-          <SolidColorBrush x:Key="Ok" Color="#2EE6F6" />
+          <!-- Zapret UI inspired dark theme -->
+          <SolidColorBrush x:Key="Bg" Color="#0A0B14" />
+          <SolidColorBrush x:Key="Head" Color="#0A0B14" />
+          <SolidColorBrush x:Key="HeadText" Color="#4DD4FF" />
+          <SolidColorBrush x:Key="Bar" Color="#0A0B14" />
+          <SolidColorBrush x:Key="Panel" Color="#10121E" />
+          <SolidColorBrush x:Key="Border" Color="#242842" />
+          <SolidColorBrush x:Key="Text" Color="#F1F5F9" />
+          <SolidColorBrush x:Key="Muted" Color="#7B84A0" />
+          <SolidColorBrush x:Key="Accent" Color="#B89EFF" />
+          <SolidColorBrush x:Key="Ok" Color="#4DD4FF" />
           <SolidColorBrush x:Key="Warn" Color="#F5923E" />
           <SolidColorBrush x:Key="Err" Color="#FF6B8A" />
-          <SolidColorBrush x:Key="Term" Color="#181C3A" />
-          <SolidColorBrush x:Key="Sel" Color="#B79CFF" />
-          <SolidColorBrush x:Key="ButtonText" Color="#2A1060" />
-          <SolidColorBrush x:Key="Card" Color="#0F1429" />
-          <SolidColorBrush x:Key="Field" Color="#181C3A" />
-          <SolidColorBrush x:Key="Sidebar" Color="#0A0E22" />
-          <SolidColorBrush x:Key="SidebarActive" Color="#1B1F40" />
-          <SolidColorBrush x:Key="BorderDim" Color="#8C96E624" />
-          <SolidColorBrush x:Key="BorderStrong" Color="#8C96E647" />
+          <SolidColorBrush x:Key="Term" Color="#16192B" />
+          <SolidColorBrush x:Key="Sel" Color="#B89EFF" />
+          <SolidColorBrush x:Key="ButtonText" Color="#0D0E18" />
+          <SolidColorBrush x:Key="Card" Color="#131626" />
+          <SolidColorBrush x:Key="CardActiveBorder" Color="#3EC8F5" />
+          <SolidColorBrush x:Key="Field" Color="#1B1E30" />
+          <SolidColorBrush x:Key="Sidebar" Color="#0C0D18" />
+          <SolidColorBrush x:Key="SidebarActive" Color="#252042" />
+          <SolidColorBrush x:Key="BorderDim" Color="#242842" />
+          <SolidColorBrush x:Key="BorderStrong" Color="#363C63" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
           <!-- Запрет UI — светлая тема (парная) -->
@@ -62,34 +63,87 @@
     <FluentTheme />
 
     <!-- Шрифт Manrope с fallback на Segoe UI -->
-    <!-- Кнопки (primary = violet фон, ghost = прозрачный с cyan обводкой) -->
+    <!-- Кнопки (primary = lavender фон, ghost = тёмный с cyan текстом) -->
     <Style Selector="Button.btn--primary">
-      <Setter Property="CornerRadius" Value="18" />
+      <Setter Property="CornerRadius" Value="10" />
       <Setter Property="Background" Value="{DynamicResource Accent}" />
       <Setter Property="Foreground" Value="{DynamicResource ButtonText}" />
       <Setter Property="FontWeight" Value="Bold" />
-      <Setter Property="FontSize" Value="14" />
-      <Setter Property="Padding" Value="22 12" />
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="Padding" Value="20 12" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.btn--primary:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#C9B3FF" />
     </Style>
     <Style Selector="Button.btn--ghost">
-      <Setter Property="CornerRadius" Value="18" />
-      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Background" Value="#181B2C" />
       <Setter Property="Foreground" Value="{DynamicResource HeadText}" />
       <Setter Property="BorderBrush" Value="{DynamicResource BorderDim}" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="FontWeight" Value="Bold" />
       <Setter Property="FontSize" Value="12" />
-      <Setter Property="Padding" Value="14 8" />
+      <Setter Property="Padding" Value="16 10" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.btn--ghost:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#20243A" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderStrong}" />
     </Style>
     <Style Selector="Button.icon-btn">
-      <Setter Property="CornerRadius" Value="14" />
+      <Setter Property="CornerRadius" Value="10" />
       <Setter Property="Background" Value="{DynamicResource Field}" />
       <Setter Property="BorderBrush" Value="{DynamicResource BorderDim}" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="Foreground" Value="{DynamicResource Accent}" />
-      <Setter Property="Width" Value="48" />
-      <Setter Property="Height" Value="48" />
+      <Setter Property="Width" Value="38" />
+      <Setter Property="Height" Value="38" />
       <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.win-btn">
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Foreground" Value="{DynamicResource Muted}" />
+      <Setter Property="Width" Value="34" />
+      <Setter Property="Height" Value="34" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.win-btn:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource Field}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+    </Style>
+
+    <!-- Навигация сайдбара -->
+    <Style Selector="Button.nav-btn">
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Foreground" Value="{DynamicResource Muted}" />
+      <Setter Property="Width" Value="44" />
+      <Setter Property="Height" Value="44" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.nav-btn:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource Field}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+    </Style>
+    <Style Selector="Button.nav-btn.is-active">
+      <Setter Property="Background" Value="{DynamicResource SidebarActive}" />
+      <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+    </Style>
+    <Style Selector="Button.nav-btn.is-active /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SidebarActive}" />
     </Style>
 
     <!-- Вкладки -->
@@ -104,40 +158,56 @@
 
     <!-- Карточки -->
     <Style Selector="Border.card">
-      <Setter Property="CornerRadius" Value="28" />
+      <Setter Property="CornerRadius" Value="14" />
       <Setter Property="Background" Value="{DynamicResource Card}" />
       <Setter Property="BorderBrush" Value="{DynamicResource BorderDim}" />
-      <Setter Property="BorderThickness" Value="1.5" />
-      <Setter Property="Padding" Value="24" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Padding" Value="22" />
+    </Style>
+    <Style Selector="Border.card--active">
+      <Setter Property="CornerRadius" Value="14" />
+      <Setter Property="Background" Value="{DynamicResource Card}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource CardActiveBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Padding" Value="22" />
     </Style>
 
     <!-- Панели -->
     <Style Selector="Border.panel">
-      <Setter Property="CornerRadius" Value="34" />
+      <Setter Property="CornerRadius" Value="18" />
       <Setter Property="Background" Value="{DynamicResource Panel}" />
       <Setter Property="BorderBrush" Value="{DynamicResource BorderDim}" />
       <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="Padding" Value="32 48 48 48" />
+      <Setter Property="Padding" Value="28" />
     </Style>
 
     <!-- Поля ввода / выпадающие списки -->
     <Style Selector="ComboBox">
-      <Setter Property="CornerRadius" Value="18" />
+      <Setter Property="CornerRadius" Value="10" />
       <Setter Property="Background" Value="{DynamicResource Field}" />
       <Setter Property="BorderBrush" Value="{DynamicResource BorderDim}" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="Foreground" Value="{DynamicResource Text}" />
-      <Setter Property="Padding" Value="18 12" />
-      <Setter Property="FontSize" Value="14" />
+      <Setter Property="Padding" Value="14 10" />
+      <Setter Property="FontSize" Value="13" />
+    </Style>
+    <Style Selector="TextBox">
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Background" Value="{DynamicResource Field}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDim}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="Padding" Value="14 10" />
+      <Setter Property="FontSize" Value="13" />
     </Style>
 
     <!-- Бейдж статуса -->
     <Style Selector="Border.badge">
       <Setter Property="CornerRadius" Value="999" />
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="BorderBrush" Value="{DynamicResource BorderStrong}" />
+      <Setter Property="Background" Value="#132232" />
+      <Setter Property="BorderBrush" Value="#264D6B" />
       <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="Padding" Value="7 4" />
+      <Setter Property="Padding" Value="10 4" />
     </Style>
   </Application.Styles>
 </Application>

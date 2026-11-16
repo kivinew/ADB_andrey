@@ -14,7 +14,7 @@
                Foreground="{DynamicResource Muted}" />
 
     <Border Grid.Row="2" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="10"
-            ClipToBounds="True">
+            ClipToBounds="True" MaxHeight="420">
       <ListBox x:Name="PkgList" SelectionMode="Multiple" />
     </Border>
 

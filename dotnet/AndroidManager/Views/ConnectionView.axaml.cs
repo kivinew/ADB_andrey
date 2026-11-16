@@ -3,6 +3,8 @@ using AndroidManager.Core.Parsing;
 using AndroidManager.Core.Settings;
 using AndroidManager.Services;
 using Avalonia.Controls;
+using Avalonia.Input;
+using System.Net;
 
 namespace AndroidManager.Views;
 
@@ -22,8 +24,7 @@ public partial class ConnectionView : UserControl
     {
         InitializeComponent();
 
-        ConnectBtn.Click += (_, _) => _ = ConnectAsync();
-        DisconnectBtn.Click += (_, _) => _ = DisconnectAsync();
+        ConnectBtn.Click += (_, _) => _ = ToggleConnectionAsync();
         PairBtn.Click += (_, _) => _ = PairAsync();
         FavAddBtn.Click += (_, _) => AddFavorite();
         RefreshBtn.Click += (_, _) => DevicesChanged?.Invoke();
@@ -36,7 +37,21 @@ public partial class ConnectionView : UserControl
                 DeviceSelected?.Invoke(serial);
         };
 
-        Loaded += (_, _) => LoadLists();
+        DeviceBox.KeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Enter)
+            {
+                var text = DeviceBox.Text?.Trim();
+                if (text.Length > 0)
+                    DeviceSelected?.Invoke(text);
+            }
+        };
+
+        Loaded += (_, _) =>
+        {
+            LoadLists();
+            UpdateConnectButton();
+        };
     }
 
     private void LoadLists()
@@ -133,6 +148,23 @@ public partial class ConnectionView : UserControl
         Ctx.Log($"В избранное: {name}");
     }
 
+    private void UpdateConnectButton()
+    {
+        var connected = !string.IsNullOrEmpty(Ctx.Serial);
+        ConnectBtn.Content = connected ? "ОТКЛЮЧИТЬ" : "ПОДКЛЮЧИТЬ";
+    }
+
+    private async Task ToggleConnectionAsync()
+    {
+        if (!string.IsNullOrEmpty(Ctx.Serial) && Ctx.Serial.Contains(':'))
+        {
+            await DisconnectAsync();
+            return;
+        }
+
+        await ConnectAsync();
+    }
+
     private async Task ConnectAsync()
     {
         var host = HostBox.Text?.Trim() ?? "";
@@ -155,15 +187,39 @@ public partial class ConnectionView : UserControl
 
         try
         {
+            Ctx.Log($"adb путь: {Ctx.AdbPath}");
+
+            // Разрешаем имя хоста в IP, как в Python-версии (adb connect не всегда справляется с DNS-именами).
+            var ip = host;
+            try
+            {
+                if (!IPAddress.TryParse(host, out var _))
+                {
+                    var entry = Dns.GetHostEntry(host);
+                    ip = entry.AddressList[0].ToString();
+                }
+            }
+            catch
+            {
+                // Если не удалось разрешить — оставляем как есть, adb сам сообщит об ошибке.
+            }
+
+            target = $"{ip}:{port}";
             Ctx.Log($"Подключение к {target}...");
 
-            var (_, stdout, stderr) = await Task.Run(() =>
+            var (rc, stdout, stderr) = await Task.Run(() =>
                 new AdbClient(Ctx.AdbPath, null, 20).Run("connect", target));
 
             var answer = (stdout + stderr).Trim();
-            Ctx.Log($"{target}: {(answer.Length == 0 ? "устройство подключено" : answer)}");
+            Ctx.Log($"adb connect rc={rc}, out={answer}");
 
-            if (answer.Contains("cannot", StringComparison.OrdinalIgnoreCase)
+            if (rc == AdbRunner.NotFound)
+            {
+                Ctx.Log($"adb не найден по пути: {Ctx.AdbPath}");
+                return;
+            }
+
+            if (rc != 0 || answer.Contains("cannot", StringComparison.OrdinalIgnoreCase)
                 || answer.Contains("failed", StringComparison.OrdinalIgnoreCase)
                 || answer.Contains("unable", StringComparison.OrdinalIgnoreCase))
                 return;
@@ -178,6 +234,7 @@ public partial class ConnectionView : UserControl
         finally
         {
             ConnectBtn.IsEnabled = true;
+            UpdateConnectButton();
         }
     }
 
@@ -191,12 +248,19 @@ public partial class ConnectionView : UserControl
             return;
         }
 
-        var (_, stdout, stderr) = await Task.Run(() =>
+        var (rc, stdout, stderr) = await Task.Run(() =>
             new AdbClient(Ctx.AdbPath, null, 15).Run("disconnect", serial));
+
+        if (rc == AdbRunner.NotFound)
+        {
+            Ctx.Log($"adb не найден по пути: {Ctx.AdbPath}");
+            return;
+        }
 
         var answer = (stdout + stderr).Trim();
         Ctx.Log(answer.Length == 0 ? "Отключено" : answer);
         DevicesChanged?.Invoke();
+        UpdateConnectButton();
     }
 
     private async Task PairAsync()
@@ -208,8 +272,14 @@ public partial class ConnectionView : UserControl
 
         var target = $"{request.Address}:{request.Port}";
 
-        var (_, stdout, stderr) = await Task.Run(() =>
+        var (rc, stdout, stderr) = await Task.Run(() =>
             new AdbClient(Ctx.AdbPath, null, 60).Run("pair", target, request.Code));
+
+        if (rc == AdbRunner.NotFound)
+        {
+            Ctx.Log($"adb не найден по пути: {Ctx.AdbPath}");
+            return;
+        }
 
         var answer = (stdout + stderr).Trim();
         Ctx.Log(answer.Length == 0 ? "Сопряжение выполнено" : answer);
@@ -231,6 +301,8 @@ public partial class ConnectionView : UserControl
             DeviceBox.SelectedItem = keep;
         }
 
+        UpdateConnectButton();
+
         if (unauthorized.Count > 0)
             Ctx.Log("Подтвердите отладку на экране устройства: " + string.Join(", ", unauthorized));
     }
@@ -239,6 +311,7 @@ public partial class ConnectionView : UserControl
     public void SelectDevice(string serial)
     {
         DeviceBox.SelectedItem = serial;
+        UpdateConnectButton();
     }
 
     public void ShowDevice(string model, string release, string sdk, int totalMb, int availableMb)
@@ -251,5 +324,6 @@ public partial class ConnectionView : UserControl
     {
         InfoTitle.Text = "Устройство не выбрано";
         InfoText.Text = "Выберите устройство в списке сверху или подключитесь по IP:порт.";
+        UpdateConnectButton();
     }
 }

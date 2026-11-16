@@ -1,0 +1,30 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="AndroidManager.Views.BarsView">
+  <DockPanel LastChildFill="True">
+
+    <!-- Заголовок и выбор панели -->
+    <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0 0 0 10">
+      <TextBlock Text="КАСТОМНЫЕ КНОПКИ" FontSize="18" FontWeight="Bold"
+                 Foreground="{DynamicResource HeadText}" />
+      <TextBlock Text="Кнопки выполняют команды в shell устройства или на ПК. ПКМ по кнопке — изменить/удалить/переместить."
+                 FontSize="12" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" />
+
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <TextBlock Text="ПАНЕЛЬ:" FontSize="10" FontWeight="Bold"
+                   Foreground="{DynamicResource Muted}" VerticalAlignment="Center" />
+        <ComboBox x:Name="BarBox" Width="180" VerticalAlignment="Center" />
+        <Button x:Name="BtnAdd" Content="+ ДОБАВИТЬ КНОПКУ" Classes="btn--primary" />
+      </StackPanel>
+    </StackPanel>
+
+    <!-- Список кнопок (переносятся на новые строки) -->
+    <ScrollViewer>
+      <WrapPanel x:Name="ButtonPanel" ItemWidth="160" ItemHeight="90" />
+    </ScrollViewer>
+
+  </DockPanel>
+</UserControl>

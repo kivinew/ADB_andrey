@@ -1,0 +1,93 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="AndroidManager.Views.ActionsView">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+    <StackPanel Spacing="16" Margin="0 0 0 10">
+
+      <!-- Заголовок -->
+      <TextBlock Text="ДЕЙСТВИЯ" FontSize="18" FontWeight="Bold"
+                 Foreground="{DynamicResource HeadText}" />
+
+      <!-- scrcpy -->
+      <Border Classes="card" Margin="0 0 0 10" Padding="16">
+        <StackPanel Spacing="10">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="📺" FontSize="14" Foreground="#B89EFF" VerticalAlignment="Center" />
+            <TextBlock Text="scrcpy" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource Accent}" VerticalAlignment="Center" />
+            <TextBlock Text="— трансляция экрана устройства на ПК" FontSize="11" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" />
+          </StackPanel>
+
+          <Grid ColumnDefinitions="Auto,120,Auto,80,Auto,100,Auto" ColumnSpacing="8" RowSpacing="6">
+            <TextBlock Text="Max size" FontSize="10" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" />
+            <TextBox x:Name="ScMax" Watermark="1280" Width="100" Grid.Column="1" />
+            <TextBlock Text="FPS" FontSize="10" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" Grid.Column="2" />
+            <TextBox x:Name="ScFps" Watermark="30" Width="80" Grid.Column="3" />
+            <TextBlock Text="Bitrate" FontSize="10" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" Grid.Column="4" />
+            <TextBox x:Name="ScBr" Watermark="4M" Width="100" Grid.Column="5" />
+            <TextBlock Text="Codec" FontSize="10" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" Grid.Column="6" />
+            <ComboBox x:Name="ScCodec" Grid.Column="7" Width="120">
+              <ComboBoxItem Content="h264" />
+              <ComboBoxItem Content="h265" />
+              <ComboBoxItem Content="av1" />
+            </ComboBox>
+            <Button Grid.ColumnSpan="8" x:Name="BtnScStart" Content="ЗАПУСТИТЬ scrcpy" Classes="btn--primary" HorizontalAlignment="Right" />
+          </Grid>
+
+          <StackPanel Orientation="Horizontal" Spacing="12" Margin="0 6 0 0">
+            <CheckBox x:Name="ScTouch" Content="Показывать касания" />
+            <CheckBox x:Name="ScAwake" Content="Экран всегда вкл." />
+            <CheckBox x:Name="ScOff" Content="Выключать экран устройства" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <!-- Vysor -->
+      <Border Classes="card" Margin="0 0 0 10" Padding="16">
+        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+          <TextBlock Text="🖥" FontSize="14" Foreground="#B89EFF" VerticalAlignment="Center" />
+          <TextBlock Text="Vysor:" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource Accent}" VerticalAlignment="Center" />
+          <TextBlock x:Name="VysorPathText" Text="не задан" FontSize="11" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" />
+          <Button x:Name="BtnVysorSelect" Content="Указать exe" Classes="btn--ghost" />
+          <Button x:Name="BtnVysorStart" Content="Запустить" Classes="btn--primary" />
+        </StackPanel>
+      </Border>
+
+      <!-- Программы -->
+      <Border Classes="card" Margin="0 0 0 10" Padding="16">
+        <StackPanel Spacing="10">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="📦" FontSize="14" Foreground="#B89EFF" VerticalAlignment="Center" />
+            <TextBlock Text="ВНЕШНИЕ ПРОГРАММЫ" FontSize="12" FontWeight="Bold" Foreground="#B89EFF" />
+            <TextBlock Text="— кнопки из папки programs/ с подстановкой {serial}, {ip}, {port}" FontSize="11" Foreground="#7B84A0" />
+          </StackPanel>
+          <WrapPanel x:Name="ProgramPanel" ItemWidth="150" ItemHeight="44" />
+        </StackPanel>
+      </Border>
+
+      <!-- Скриншот, перезагрузка, клавиши -->
+      <Border Classes="card" Padding="16">
+        <StackPanel Spacing="10">
+          <TextBlock Text="БЫСТРЫЕ КОМАНДЫ" FontSize="12" FontWeight="Bold" Foreground="#B89EFF" />
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button x:Name="BtnScreenshot" Content="СКРИНШОТ" Classes="btn--primary" MinWidth="110" />
+            <Button x:Name="BtnReboot" Content="ПЕРЕЗАГРУЗКА" Classes="btn--ghost" MinWidth="110" />
+            <Button x:Name="BtnRebootRecovery" Content="RECOVERY" Classes="btn--ghost" MinWidth="110" />
+            <Button x:Name="BtnRebootBootloader" Content="BOOTLOADER" Classes="btn--ghost" MinWidth="110" />
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 10 0 0">
+            <TextBlock Text="Клавиша (keyevent):" FontSize="10" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" />
+            <ComboBox x:Name="KeyBox" Width="200" VerticalAlignment="Center" />
+            <Button x:Name="BtnKey" Content="ОТПРАВИТЬ" Classes="btn--primary" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
+
+  </ScrollViewer>
+</UserControl>

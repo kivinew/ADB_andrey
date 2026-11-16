@@ -41,6 +41,14 @@ public sealed class CardSetting
     };
 }
 
+/// <summary>Одна кастомная кнопка на панели: имя, команда, тип (shell/pc).</summary>
+public sealed class BarItem
+{
+    public string Name { get; set; } = "Кнопка";
+    public string Cmd { get; set; } = "";
+    public string Type { get; set; } = "shell";
+}
+
 /// <summary>Настройки приложения. Лежат в settings.json рядом с exe: у C#-версии своя
 /// папка, с настройками Python-версии они не пересекаются.</summary>
 public sealed class AppSettings
@@ -59,6 +67,15 @@ public sealed class AppSettings
     public List<string> History { get; set; } = new();
     public List<Favorite> Favorites { get; set; } = new();
     public List<CardSetting> Cards { get; set; } = Defaults.DefaultCards();
+
+    /// <summary>Кастомные кнопки для панелей: tools, apps, scripts, console.</summary>
+    public Dictionary<string, List<BarItem>> Bars { get; set; } = new()
+    {
+        ["tools"] = new(),
+        ["apps"] = new(),
+        ["scripts"] = new(),
+        ["console"] = new(),
+    };
 
     private static readonly JsonSerializerOptions Json = new()
     {
@@ -90,6 +107,13 @@ public sealed class AppSettings
                     loaded.History ??= new();
                     loaded.Favorites ??= new();
                     loaded.Cards ??= new();
+                    loaded.Bars ??= new()
+                    {
+                        ["tools"] = new(),
+                        ["apps"] = new(),
+                        ["scripts"] = new(),
+                        ["console"] = new(),
+                    };
 
                     if (loaded.Cards.Count == 0)
                         loaded.Cards = Defaults.DefaultCards();

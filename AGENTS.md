@@ -6,9 +6,10 @@
 ## Запуск и проверки
 
 ```bash
+# Python версия (основная)
 python Android_manager.pyw            # окно установщика
 python Android_manager.pyw --cli      # установка без окна
-python Android_manager.pyw --run      # запустить приложение из исходников
+python Android_manager.pyw --run      # запуск приложения из исходников
 python -m android_manager             # то же, что --run
 python Android_manager.pyw --version  # версия
 
@@ -18,9 +19,15 @@ python devtools/build_installer.py    # собрать dist/Android_manager.pyw 
 python devtools/verify_extraction.py --baseline <git-ref>   # сверить пакеты с исходным файлом
 python -m compileall -q android_manager installer
 python -m unittest discover -s tests -v                     # 72 теста
+
+# C# версия (Avalonia UI, .NET 10) — в папке dotnet/
+cd dotnet/AndroidManager
+dotnet run                            # запуск из исходников
+dotnet publish -c Release -r win-x64 --self-contained true  # сборка exe
+dotnet test                           # тесты (в dotnet/)
 ```
 
-## Где что лежит
+## Где что лежит (Python версия)
 
 | Задача | Файлы |
 |---|---|
@@ -43,7 +50,16 @@ python -m unittest discover -s tests -v                     # 72 теста
 | Разбор вывода adb (чистые функции) | `android_manager/parsing.py` |
 | Настройки, JSON, бандлы | `android_manager/storage.py` |
 
-## Правила
+## Структура C# версии (dotnet/)
+
+| Проект | Назначение |
+|---|---|
+| `dotnet/AndroidManager/` | Avalonia UI приложение (WinExe, net10.0) |
+| `dotnet/AndroidManager.Core/` | Бизнес-логика, ADB-клиент, парсинг, настройки |
+| `dotnet/AndroidManager.Core.Tests/` | Unit-тесты Core |
+| `dotnet/AndroidManager.SelfCheck/` | Самотестирование |
+
+## Правила (Python)
 
 - Слои: `ui` → `widgets` → `storage`/`scriptapi`/`proc` → `config`/`paths`/`parsing`/`util`.
   Импорт только вниз; циклам не место.
@@ -56,12 +72,16 @@ python -m unittest discover -s tests -v                     # 72 теста
 - Русские строки — в интерфейсе; докстринги и комментарии короткие.
 - `PROGRAM_SRC` больше нет: установщик собирает exe прямо из пакета (`PyInstaller --paths`).
 
-Не читать: `dist/`, `__pycache__/`, `apk/`, `files/`, `programs/`, `screenshots/`.
+Не читать: `dist/`, `__pycache__/`, `apk/`, `files/`, `programs/`, `screenshots/`, `dotnet/**/bin/`, `dotnet/**/obj/`.
 
 ## Тесты
 
 ```bash
+# Python
 python -m unittest discover -s tests -v
+
+# C#
+cd dotnet && dotnet test
 ```
 
 - `tests/test_parsing.py` — разбор вывода adb: `parse_card`, `parse_state_batch`,
@@ -76,3 +96,17 @@ python -m unittest discover -s tests -v
 
 Новую логику разбора кладите в `parsing.py`/`util.py` и покрывайте тестом: это дешевле,
 чем проверять окно глазами.
+
+## Автокоммит
+
+Скрипт `auto_commit.ps1` коммитит и пушит оба репозитория (Python + C#) ежедневно в 02:00 через Task Scheduler. Запуск вручную:
+```powershell
+powershell -ExecutionPolicy Bypass -File auto_commit.ps1
+```
+
+## Репозитории
+
+| Репозиторий | Версия | Ветка |
+|---|---|---|
+| `kivinew/ADB_andrey` | Python Tkinter | `master` |
+| `kivinew/AndroidManager-CSharp` | C#/.NET Avalonia | `main` |

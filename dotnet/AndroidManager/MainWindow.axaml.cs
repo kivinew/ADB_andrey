@@ -3,8 +3,10 @@ using AndroidManager.Core.Devices;
 using AndroidManager.Core.Parsing;
 using AndroidManager.Core.Settings;
 using AndroidManager.Services;
+using AndroidManager.Views;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
@@ -19,15 +21,18 @@ public partial class MainWindow : Window
 
     private readonly AppState _ctx;
     private bool _busy;
+    private LogWindow? _logWindow;
 
     public MainWindow()
     {
         InitializeComponent();
 
+        // Без системной рамки — своя заголовок-строка с кнопками свернуть/развернуть/закрыть
+        SystemDecorations = Avalonia.Controls.SystemDecorations.None;
+
         var (settings, error) = AppSettings.Load();
         _ctx = new AppState(settings, AppSettings.DefaultPath);
 
-        _ctx.Logged += text => Dispatcher.UIThread.Post(() => StatusLine.Text = text);
         _ctx.DevicesRefresh += () => Dispatcher.UIThread.Post(() => _ = RefreshDevicesAsync());
 
         if (error is not null)
@@ -37,6 +42,9 @@ public partial class MainWindow : Window
         ConsoleTab.Ctx = _ctx;
         AppsTab.Ctx = _ctx;
         CardsTab.Ctx = _ctx;
+        ProcsTab.Ctx = _ctx;
+        BarsTab.Ctx = _ctx;
+        ActionsTab.Ctx = _ctx;
         SettingsTab.Ctx = _ctx;
 
         ConnectionTab.DevicesChanged += () => Dispatcher.UIThread.Post(() => _ = RefreshDevicesAsync());
@@ -45,14 +53,35 @@ public partial class MainWindow : Window
 
         // Sidebar навигация
         BtnHome.Click += (_, _) => ShowPage("home");
-        BtnStrategies.Click += (_, _) => ShowPage("strategies");
-        BtnSpeed.Click += (_, _) => ShowPage("speed");
-        BtnCloud.Click += (_, _) => ShowPage("cloud");
-        BtnTelegram.Click += (_, _) => ShowPage("telegram");
-        BtnStats.Click += (_, _) => ShowPage("stats");
+        BtnConsole.Click += (_, _) => ShowPage("console");
+        BtnApps.Click += (_, _) => ShowPage("apps");
+        BtnCards.Click += (_, _) => ShowPage("cards");
+        BtnProcs.Click += (_, _) => ShowPage("procs");
+        BtnBars.Click += (_, _) => ShowPage("bars");
+        BtnActions.Click += (_, _) => ShowPage("actions");
         BtnSettings.Click += (_, _) => ShowPage("settings");
 
+        // Управление окном (без системной рамки)
+        TitleBar.PointerPressed += (_, e) => BeginMoveDrag(e);
+        MinBtn.Click += (_, _) => WindowState = WindowState.Minimized;
+        MaxBtn.Click += (_, _) => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        CloseBtn.Click += (_, _) => Close();
+
         Closed += (_, _) => ConsoleTab.Shutdown();
+
+        // Окно логов: открывается по кнопке в заголовке.
+        BtnLogs.Click += (_, _) =>
+        {
+            if (_logWindow is null || !_logWindow.IsVisible)
+            {
+                _logWindow = new LogWindow(_ctx);
+                _logWindow.Show(this);
+            }
+            else
+            {
+                _logWindow.Activate();
+            }
+        };
 
         ApplyThemeAndFont();
         _ctx.Log($"Настройки: {_ctx.SettingsPath}");
@@ -66,6 +95,9 @@ public partial class MainWindow : Window
         PanelConsole.IsVisible = page == "console";
         PanelApps.IsVisible = page == "apps";
         PanelCards.IsVisible = page == "cards";
+        PanelProcs.IsVisible = page == "procs";
+        PanelBars.IsVisible = page == "bars";
+        PanelActions.IsVisible = page == "actions";
         PanelSettings.IsVisible = page == "settings";
 
         SetActiveSidebar(page);
@@ -73,7 +105,7 @@ public partial class MainWindow : Window
 
     private void SetActiveSidebar(string page)
     {
-        foreach (var btn in new[] { BtnHome, BtnStrategies, BtnSpeed, BtnCloud, BtnTelegram, BtnStats, BtnGithub, BtnSettings })
+        foreach (var btn in new[] { BtnHome, BtnConsole, BtnApps, BtnCards, BtnProcs, BtnBars, BtnActions, BtnSettings })
         {
             var classes = btn.Classes;
             if (classes.Contains("is-active"))
@@ -83,11 +115,12 @@ public partial class MainWindow : Window
         var active = page switch
         {
             "home" => BtnHome,
-            "strategies" => BtnStrategies,
-            "speed" => BtnSpeed,
-            "cloud" => BtnCloud,
-            "telegram" => BtnTelegram,
-            "stats" => BtnStats,
+            "console" => BtnConsole,
+            "apps" => BtnApps,
+            "cards" => BtnCards,
+            "procs" => BtnProcs,
+            "bars" => BtnBars,
+            "actions" => BtnActions,
             "settings" => BtnSettings,
             _ => BtnHome
         };
@@ -126,6 +159,7 @@ public partial class MainWindow : Window
         ConsoleTab.OnDeviceChanged();
         AppsTab.OnDeviceChanged();
         CardsTab.OnDeviceChanged();
+        ProcsTab.OnDeviceChanged();
 
         if (string.IsNullOrEmpty(serial))
         {

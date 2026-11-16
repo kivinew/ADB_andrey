@@ -1,0 +1,37 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
+        x:Class="AndroidManager.Views.LogWindow"
+        Title="ЛОГИ"
+        Width="600"
+        Height="400"
+        MinWidth="400"
+        MinHeight="300"
+        Background="{DynamicResource Bg}"
+        CanResize="True"
+        WindowStartupLocation="CenterOwner">
+
+  <DockPanel LastChildFill="True">
+
+    <!-- Заголовок и кнопки управления -->
+    <Border DockPanel.Dock="Top" Padding="12 8" Background="{DynamicResource Sidebar}">
+      <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+        <TextBlock Text="ЖУРНАЛ СОБЫТИЙ" FontSize="14" FontWeight="Bold"
+                   Foreground="{DynamicResource HeadText}" VerticalAlignment="Center" />
+        <Button x:Name="ClearBtn" Content="ОЧИСТИТЬ" Classes="btn--ghost"
+                MinWidth="80" VerticalAlignment="Center" />
+        <Button x:Name="CloseBtn" Content="ЗАКРЫТЬ" Classes="btn--ghost"
+                MinWidth="80" VerticalAlignment="Center" />
+      </StackPanel>
+    </Border>
+
+    <!-- Список логов -->
+    <ScrollViewer DockPanel.Dock="Bottom" VerticalScrollBarVisibility="Auto">
+      <ListBox x:Name="LogList" Background="{DynamicResource Bg}"
+               Foreground="{DynamicResource Text}" BorderThickness="0" />
+    </ScrollViewer>
+
+  </DockPanel>
+</Window>

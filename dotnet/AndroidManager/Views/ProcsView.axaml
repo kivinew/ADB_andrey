@@ -1,0 +1,67 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="AndroidManager.Views.ProcsView">
+  <DockPanel LastChildFill="True">
+
+    <!-- Панель управления -->
+    <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0 0 0 10">
+
+      <StackPanel Orientation="Horizontal" Spacing="12">
+        <TextBlock Text="СОРТИРОВКА:" FontSize="10" FontWeight="Bold"
+                   Foreground="{DynamicResource Muted}" VerticalAlignment="Center" />
+        <Button x:Name="BtnSortCpu" Content="по CPU" Classes="nav-btn" />
+        <Button x:Name="BtnSortMem" Content="по памяти" Classes="nav-btn" />
+        <Button x:Name="BtnSortName" Content="по имени" Classes="nav-btn" />
+        <Button x:Name="BtnSortPid" Content="по PID" Classes="nav-btn" />
+      </StackPanel>
+
+      <StackPanel Orientation="Horizontal" Spacing="12">
+        <TextBlock Text="ФИЛЬТР ПО ИМЕНИ:" FontSize="10" FontWeight="Bold"
+                   Foreground="{DynamicResource Muted}" VerticalAlignment="Center" />
+        <TextBox x:Name="FilterBox" Watermark="фильтр..." Width="220" />
+        <CheckBox x:Name="AutoCheck" Content="авто (каждые 3 с)" />
+        <Button x:Name="BtnRefresh" Content="ОБНОВИТЬ" Classes="btn--primary" />
+        <Button x:Name="BtnCopy" Content="КОПИРОВАТЬ ВЫБРАННЫЕ" Classes="btn--ghost" />
+        <Button x:Name="BtnKill" Content="ЗАВЕРШИТЬ ВЫБРАННЫЙ" Classes="btn--ghost" />
+      </StackPanel>
+
+    </StackPanel>
+
+    <!-- Список процессов -->
+    <ListBox x:Name="ProcList" ScrollViewer.HorizontalScrollBarVisibility="Auto">
+      <ListBox.ItemsPanel>
+        <ItemsPanelTemplate>
+          <VirtualizingStackPanel />
+        </ItemsPanelTemplate>
+      </ListBox.ItemsPanel>
+      <ListBox.ItemTemplate>
+        <DataTemplate>
+          <Border Classes="card" Margin="0 4" Padding="12">
+            <Grid ColumnDefinitions="70,*,110,90,90">
+              <TextBlock Text="{Binding Pid}" FontSize="11" FontWeight="Bold"
+                         Foreground="{DynamicResource Accent}" VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="11"
+                         Foreground="{DynamicResource Text}" VerticalAlignment="Center"
+                         TextTrimming="CharacterEllipsis" />
+              <TextBlock Grid.Column="2" Text="{Binding Mem}" FontSize="11"
+                         Foreground="{DynamicResource Text}" VerticalAlignment="Center"
+                         HorizontalAlignment="Center" />
+              <TextBlock Grid.Column="3" Text="{Binding Cpu}" FontSize="11"
+                         Foreground="{DynamicResource Text}" VerticalAlignment="Center"
+                         HorizontalAlignment="Center" />
+              <TextBlock Grid.Column="4" Text="{Binding State}" FontSize="11"
+                         Foreground="{DynamicResource Muted}" VerticalAlignment="Center"
+                         HorizontalAlignment="Center" />
+            </Grid>
+          </Border>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+
+    <TextBlock x:Name="ProcCount" DockPanel.Dock="Bottom" FontSize="11"
+               Foreground="{DynamicResource Muted}" Margin="0 6 0 0" />
+  </DockPanel>
+</UserControl>
