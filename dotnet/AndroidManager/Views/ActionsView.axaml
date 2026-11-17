@@ -45,6 +45,36 @@
         </StackPanel>
       </Border>
 
+      <!-- Экран: разрешение и DPI -->
+      <Border Classes="card" Margin="0 0 0 10" Padding="16">
+        <StackPanel Spacing="10">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="🖵" FontSize="14" Foreground="#B89EFF" VerticalAlignment="Center" />
+            <TextBlock Text="ЭКРАН — РАЗРЕШЕНИЕ И DPI" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource Accent}" VerticalAlignment="Center" />
+            <Button x:Name="BtnScreenRefresh" Content="Обновить" Classes="btn--ghost" />
+          </StackPanel>
+
+          <TextBlock x:Name="ScreenInfo" Text="—" FontSize="11" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" />
+
+          <Grid ColumnDefinitions="Auto,140,Auto,110,Auto" ColumnSpacing="8" RowSpacing="6">
+            <TextBlock Text="Разрешение" FontSize="10" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" />
+            <TextBox x:Name="ResBox" Grid.Column="1" Watermark="1920x1080" Width="130" />
+            <TextBlock Text="DPI" FontSize="10" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" Grid.Column="2" />
+            <TextBox x:Name="DpiBox" Grid.Column="3" Watermark="320" Width="100" />
+            <Button x:Name="BtnScreenApply" Grid.Column="4" Content="ПРИМЕНИТЬ" Classes="btn--primary" />
+          </Grid>
+
+          <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 4 0 0">
+            <TextBlock Text="Быстро:" FontSize="10" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" />
+            <Button x:Name="Preset720" Content="1280x720" Classes="btn--ghost" />
+            <Button x:Name="Preset1080" Content="1920x1080" Classes="btn--ghost" />
+            <Button x:Name="Preset2160" Content="3840x2160" Classes="btn--ghost" />
+            <Button x:Name="BtnScreenResetSize" Content="Сбросить разрешение" Classes="btn--ghost" />
+            <Button x:Name="BtnScreenResetDpi" Content="Сбросить DPI" Classes="btn--ghost" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
       <!-- Vysor -->
       <Border Classes="card" Margin="0 0 0 10" Padding="16">
         <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">

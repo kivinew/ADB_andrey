@@ -151,6 +151,7 @@ public partial class MainWindow : Window
         AppsTab.OnDeviceChanged();
         CardsTab.OnDeviceChanged();
         ProcsTab.OnDeviceChanged();
+        ActionsTab.OnDeviceChanged();
 
         if (string.IsNullOrEmpty(serial))
         {

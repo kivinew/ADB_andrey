@@ -14,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace AndroidManager.Views;
@@ -54,7 +55,15 @@ public partial class ActionsView : UserControl
         BtnRebootBootloader.Click += (_, _) => Reboot("bootloader");
         BtnKey.Click += (_, _) => SendKey();
 
-        Loaded += (_, _) => { LoadVysorPath(); ReloadPrograms(); };
+        BtnScreenRefresh.Click += (_, _) => _ = RefreshScreenInfoAsync();
+        BtnScreenApply.Click += (_, _) => _ = ApplyScreenAsync();
+        BtnScreenResetSize.Click += (_, _) => _ = ResetScreenAsync(false);
+        BtnScreenResetDpi.Click += (_, _) => _ = ResetScreenAsync(true);
+        Preset720.Click += (_, _) => ResBox.Text = "1280x720";
+        Preset1080.Click += (_, _) => ResBox.Text = "1920x1080";
+        Preset2160.Click += (_, _) => ResBox.Text = "3840x2160";
+
+        Loaded += (_, _) => { LoadVysorPath(); ReloadPrograms(); _ = RefreshScreenInfoAsync(); };
     }
 
     private class KeyItem
@@ -335,6 +344,147 @@ public partial class ActionsView : UserControl
                     Ctx.Log($"Ошибка клавиши: {err.Trim()}");
             });
         });
+    }
+
+    /// <summary>Смена устройства: сбрасываем показания экрана и перечитываем.</summary>
+    public void OnDeviceChanged()
+    {
+        ScreenInfo.Text = "—";
+        ResBox.Text = "";
+        DpiBox.Text = "";
+        _ = RefreshScreenInfoAsync();
+    }
+
+    /// <summary>Читает физическое и текущее (override) разрешение и плотность через wm.</summary>
+    private async Task RefreshScreenInfoAsync()
+    {
+        var serial = Ctx?.Serial;
+        if (string.IsNullOrEmpty(serial))
+        {
+            ScreenInfo.Text = "Устройство не подключено";
+            return;
+        }
+
+        try
+        {
+            var (rcS, sizeOut, _) = await Task.Run(() => new AdbClient(Ctx.AdbPath, serial, 15).Shell("wm size", 15));
+            var (rcD, densOut, _) = await Task.Run(() => new AdbClient(Ctx.AdbPath, serial, 15).Shell("wm density", 15));
+
+            if (rcS != 0 && rcD != 0)
+            {
+                ScreenInfo.Text = "Не удалось прочитать параметры экрана";
+                return;
+            }
+
+            string? physSize = null, ovrSize = null, physDpi = null, ovrDpi = null;
+
+            foreach (var raw in sizeOut.Split('\n'))
+            {
+                var line = raw.Trim();
+                if (line.StartsWith("Physical size:", StringComparison.Ordinal))
+                    physSize = line["Physical size:".Length..].Trim();
+                else if (line.StartsWith("Override size:", StringComparison.Ordinal))
+                    ovrSize = line["Override size:".Length..].Trim();
+            }
+
+            foreach (var raw in densOut.Split('\n'))
+            {
+                var line = raw.Trim();
+                if (line.StartsWith("Physical density:", StringComparison.Ordinal))
+                    physDpi = line["Physical density:".Length..].Trim();
+                else if (line.StartsWith("Override density:", StringComparison.Ordinal))
+                    ovrDpi = line["Override density:".Length..].Trim();
+            }
+
+            var effSize = ovrSize ?? physSize;
+            var effDpi = ovrDpi ?? physDpi;
+
+            var text = $"Физически: {physSize ?? "?"} · DPI {physDpi ?? "?"}";
+            if (ovrSize != null || ovrDpi != null)
+                text += $"\nТекущее: {effSize ?? "?"} · DPI {effDpi ?? "?"}";
+
+            ScreenInfo.Text = text;
+
+            // Подставляем текущие значения в поля, если пользователь их не заполнил.
+            if (string.IsNullOrWhiteSpace(ResBox.Text) && effSize != null)
+                ResBox.Text = effSize;
+            if (string.IsNullOrWhiteSpace(DpiBox.Text) && effDpi != null)
+                DpiBox.Text = effDpi;
+        }
+        catch (Exception ex)
+        {
+            ScreenInfo.Text = $"Ошибка чтения: {ex.Message}";
+        }
+    }
+
+    /// <summary>Применяет разрешение (WxH) и/или DPI через wm size / wm density.</summary>
+    private async Task ApplyScreenAsync()
+    {
+        var serial = Ctx?.Serial;
+        if (string.IsNullOrEmpty(serial))
+        {
+            Ctx?.Log("Сначала подключите устройство");
+            return;
+        }
+
+        var res = ResBox.Text?.Trim() ?? "";
+        var dpi = DpiBox.Text?.Trim() ?? "";
+        var validRes = Regex.IsMatch(res, @"^\d{3,5}x\d{3,5}$");
+        var validDpi = Regex.IsMatch(dpi, @"^\d{2,4}$");
+
+        if (!validRes && !validDpi)
+        {
+            Ctx.Log("Укажите разрешение вида 1920x1080 и/или DPI числом (например 320)");
+            return;
+        }
+
+        if (Ctx.Settings.ConfirmDangerous)
+        {
+            var parts = new List<string>();
+            if (validRes) parts.Add($"разрешение {res}");
+            if (validDpi) parts.Add($"DPI {dpi}");
+            var ok = await UiDialogs.Confirm(TopLevel.GetTopLevel(this) as Window,
+                "Изменить экран",
+                $"Применить {string.Join(" и ", parts)}? Неверные значения могут сделать экран нечитаемым — сбросить можно кнопками «Сбросить».");
+            if (!ok) return;
+        }
+
+        var client = new AdbClient(Ctx.AdbPath, serial, 20);
+
+        if (validRes)
+        {
+            var (rc, _, err) = await Task.Run(() => client.Shell($"wm size {res}", 20));
+            Ctx.Log(rc == 0 ? $"Разрешение задано: {res}" : $"Ошибка разрешения: {err.Trim()}");
+        }
+
+        if (validDpi)
+        {
+            var (rc, _, err) = await Task.Run(() => client.Shell($"wm density {dpi}", 20));
+            Ctx.Log(rc == 0 ? $"DPI задан: {dpi}" : $"Ошибка DPI: {err.Trim()}");
+        }
+
+        await RefreshScreenInfoAsync();
+    }
+
+    /// <summary>Сбрасывает разрешение или DPI к заводским (wm ... reset).</summary>
+    private async Task ResetScreenAsync(bool density)
+    {
+        var serial = Ctx?.Serial;
+        if (string.IsNullOrEmpty(serial))
+        {
+            Ctx?.Log("Сначала подключите устройство");
+            return;
+        }
+
+        var client = new AdbClient(Ctx.AdbPath, serial, 20);
+        var cmd = density ? "wm density reset" : "wm size reset";
+        var (rc, _, err) = await Task.Run(() => client.Shell(cmd, 20));
+
+        Ctx.Log(rc == 0
+            ? (density ? "DPI сброшен к заводскому" : "Разрешение сброшено к заводскому")
+            : $"Ошибка сброса: {err.Trim()}");
+
+        await RefreshScreenInfoAsync();
     }
 
     private void ReloadPrograms()
