@@ -1,7 +1,12 @@
 using AndroidManager.Core.Adb;
 using AndroidManager.Core.Parsing;
+using AndroidManager.Core.Settings;
 using AndroidManager.Services;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 
 namespace AndroidManager.Views;
 
@@ -28,6 +33,88 @@ public partial class AppsView : UserControl
         DisableBtn.Click += (_, _) => _ = ActAsync("pm disable-user --user 0 {pkg}", "Отключить");
         EnableBtn.Click += (_, _) => _ = ActAsync("pm enable --user 0 {pkg}", null);
         UninstallBtn.Click += (_, _) => _ = ActAsync("pm uninstall -k --user 0 {pkg}", "Удалить");
+
+        var menu = new ContextMenu();
+        menu.Opening += (_, _) => BuildContextMenu(menu);
+        PkgList.ContextMenu = menu;
+
+        // ПКМ по строке выбирает её до открытия меню, иначе действие уйдёт на чужие пакеты.
+        PkgList.AddHandler(InputElement.PointerPressedEvent, OnPkgPointerPressed, RoutingStrategies.Bubble, handledEventsToo: true);
+    }
+
+    private List<string> SelectedPackages() => PkgList.SelectedItems?.Cast<string>().ToList() ?? new List<string>();
+
+    /// <summary>ПКМ-меню как в Python: кнопки панели «Приложения», копирование и запуск одного пакета.</summary>
+    private void BuildContextMenu(ContextMenu menu)
+    {
+        menu.Items.Clear();
+
+        foreach (var item in CustomBars.Items(Ctx, CustomBars.PanelApps))
+        {
+            var bar = item;
+            var mi = new MenuItem { Header = bar.Name };
+            mi.Click += (_, _) => CustomBars.RunForPackages(Ctx, bar, SelectedPackages(), TopLevel.GetTopLevel(this));
+            menu.Items.Add(mi);
+        }
+
+        menu.Items.Add(new Separator());
+
+        var copy = new MenuItem { Header = "Копировать название пакета" };
+        copy.Click += (_, _) => _ = CopyPackagesAsync();
+        menu.Items.Add(copy);
+
+        var selected = SelectedPackages();
+        if (selected.Count == 1)
+        {
+            var pkg = selected[0];
+            var add = new MenuItem { Header = $"Добавить кнопку: {pkg}" };
+            add.Click += (_, _) => AddLaunchButton(pkg);
+            menu.Items.Add(add);
+        }
+    }
+
+    private void OnPkgPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(PkgList).Properties.IsRightButtonPressed)
+            return;
+
+        var item = (e.Source as Visual)?.FindAncestorOfType<ListBoxItem>();
+        var pkg = item?.DataContext as string ?? item?.Content as string;
+        if (pkg is null)
+            return;
+
+        var selected = SelectedPackages();
+        if (selected.Contains(pkg))
+            return;
+
+        PkgList.SelectedItems?.Clear();
+        PkgList.SelectedItems?.Add(pkg);
+    }
+
+    /// <summary>Создаёт кнопку запуска для конкретного пакета прямо из ПКМ-меню.</summary>
+    private void AddLaunchButton(string pkg)
+    {
+        CustomBars.Items(Ctx, CustomBars.PanelApps).Add(new BarItem
+        {
+            Name = $"Запуск: {pkg}",
+            Cmd = $"monkey -p {pkg} -c android.intent.category.LAUNCHER 1",
+            Type = "shell",
+        });
+
+        Ctx.SaveSettings();
+        RefreshCustomBar();
+        Ctx.Log($"Добавлена кнопка запуска для {pkg}");
+    }
+
+    private async Task CopyPackagesAsync()
+    {
+        var selected = SelectedPackages();
+        if (selected.Count == 0)
+            return;
+
+        var top = TopLevel.GetTopLevel(this);
+        if (top?.Clipboard is { } clip)
+            await clip.SetTextAsync(string.Join("\n", selected));
     }
 
     public void OnDeviceChanged()
@@ -43,7 +130,8 @@ public partial class AppsView : UserControl
         if (Ctx is null)
             return;
 
-        CustomBars.Render(Ctx, CustomBars.PanelApps, CustomBar, TopLevel.GetTopLevel(this), RefreshCustomBar);
+        CustomBars.Render(Ctx, CustomBars.PanelApps, CustomBar, TopLevel.GetTopLevel(this), RefreshCustomBar,
+            item => CustomBars.RunForPackages(Ctx, item, SelectedPackages(), TopLevel.GetTopLevel(this)));
     }
 
     private async Task RefreshAsync()

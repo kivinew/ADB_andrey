@@ -44,7 +44,7 @@ public static class CustomBars
     /// Кнопки панели плюс «+ Кнопка» в конце. ПКМ по кнопке — изменить/удалить/переставить.
     /// onChanged перерисовывает панель после правки.
     /// </summary>
-    public static void Render(AppState ctx, string panel, Panel host, TopLevel? top, Action? onChanged)
+    public static void Render(AppState ctx, string panel, Panel host, TopLevel? top, Action? onChanged, Action<BarItem>? onRun = null)
     {
         host.Children.Clear();
         var items = Items(ctx, panel);
@@ -60,7 +60,13 @@ public static class CustomBars
                 Margin = new Thickness(0, 0, 6, 6),
             };
             ToolTip.SetTip(btn, $"{item.Type}: {item.Cmd}");
-            btn.Click += (_, _) => Run(ctx, item, top);
+            btn.Click += (_, _) =>
+            {
+                if (onRun is not null)
+                    onRun(item);
+                else
+                    Run(ctx, item, top);
+            };
 
             var menu = new ContextMenu();
             menu.Items.Add(new MenuItem { Header = "Изменить", Tag = i });
@@ -268,6 +274,71 @@ public static class CustomBars
                 else
                     ctx.Log($"{item.Name}: ошибка rc={rc}");
             });
+        });
+    }
+
+    /// <summary>Кнопка панели «Приложения» над выбранным списком: {pkg} подставляется на каждый пакет.</summary>
+    public static void RunForPackages(AppState ctx, BarItem item, IReadOnlyList<string> packages, TopLevel? top)
+    {
+        var cmd = item.Cmd ?? "";
+        var type = item.Type ?? "shell";
+
+        if (!cmd.Contains("{pkg}"))
+        {
+            Run(ctx, item, top);
+            return;
+        }
+
+        if (packages.Count == 0)
+        {
+            ctx.Log("Выберите хотя бы одно приложение");
+            return;
+        }
+
+        var serial = ctx.Serial;
+        if (type == "shell" && string.IsNullOrEmpty(serial))
+        {
+            ctx.Log("Сначала подключите устройство");
+            return;
+        }
+
+        var clip = "";
+        try
+        {
+            clip = top?.Clipboard?.GetTextAsync().GetAwaiter().GetResult() ?? "";
+        }
+        catch
+        {
+        }
+
+        _ = Task.Run(() =>
+        {
+            var client = type == "shell" ? new AdbClient(ctx.AdbPath, serial!, 60) : null;
+
+            foreach (var pkg in packages)
+            {
+                var finalCmd = cmd.Replace("{pkg}", pkg).Replace("{clipboard}", clip);
+
+                if (client is null)
+                {
+                    ExecutePcCommand(ctx, finalCmd, $"{item.Name} · {pkg}");
+                    continue;
+                }
+
+                var (rc, out_, err) = client.Shell(finalCmd.Replace("{serial}", serial!), 60);
+                var answer = (out_ + err).Trim();
+                var p = pkg;
+
+                Dispatcher.UIThread.Post(() =>
+                {
+                    if (answer.Length > 0)
+                        ctx.Log($"{item.Name} · {p}: {answer}");
+                    else if (rc == 0)
+                        ctx.Log($"{item.Name} · {p}: выполнено");
+                    else
+                        ctx.Log($"{item.Name} · {p}: ошибка rc={rc}");
+                });
+            }
         });
     }
 
