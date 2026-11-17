@@ -24,10 +24,14 @@ public partial class ConnectionView : UserControl
     {
         InitializeComponent();
 
-        ConnectBtn.Click += (_, _) => _ = ToggleConnectionAsync();
+        ConnectBtn.Click += (_, _) => _ = ConnectAsync();
+        DisconnectBtn.Click += (_, _) => _ = DisconnectAsync();
         PairBtn.Click += (_, _) => _ = PairAsync();
         FavAddBtn.Click += (_, _) => AddFavorite();
         RefreshBtn.Click += (_, _) => DevicesChanged?.Invoke();
+
+        HostBox.KeyDown += (_, e) => { if (e.Key == Key.Enter) _ = ConnectAsync(); };
+        PortBox.KeyDown += (_, e) => { if (e.Key == Key.Enter) _ = ConnectAsync(); };
 
         HistoryBox.SelectionChanged += (_, _) => PickHistory();
         FavBox.SelectionChanged += (_, _) => PickFavorite();
@@ -148,21 +152,10 @@ public partial class ConnectionView : UserControl
         Ctx.Log($"В избранное: {name}");
     }
 
+    /// <summary>Отключать можно только сетевое подключение — USB отключается кабелем.</summary>
     private void UpdateConnectButton()
     {
-        var connected = !string.IsNullOrEmpty(Ctx.Serial);
-        ConnectBtn.Content = connected ? "ОТКЛЮЧИТЬ" : "ПОДКЛЮЧИТЬ";
-    }
-
-    private async Task ToggleConnectionAsync()
-    {
-        if (!string.IsNullOrEmpty(Ctx.Serial) && Ctx.Serial.Contains(':'))
-        {
-            await DisconnectAsync();
-            return;
-        }
-
-        await ConnectAsync();
+        DisconnectBtn.IsEnabled = !string.IsNullOrEmpty(Ctx.Serial) && Ctx.Serial.Contains(':');
     }
 
     private async Task ConnectAsync()
@@ -182,6 +175,7 @@ public partial class ConnectionView : UserControl
             return;
         }
 
+        SaveHost();
         ConnectBtn.IsEnabled = false;
         var target = $"{host}:{port}";
 
@@ -248,19 +242,27 @@ public partial class ConnectionView : UserControl
             return;
         }
 
-        var (rc, stdout, stderr) = await Task.Run(() =>
-            new AdbClient(Ctx.AdbPath, null, 15).Run("disconnect", serial));
+        DisconnectBtn.IsEnabled = false;
 
-        if (rc == AdbRunner.NotFound)
+        try
         {
-            Ctx.Log($"adb не найден по пути: {Ctx.AdbPath}");
-            return;
-        }
+            var (rc, stdout, stderr) = await Task.Run(() =>
+                new AdbClient(Ctx.AdbPath, null, 15).Run("disconnect", serial));
 
-        var answer = (stdout + stderr).Trim();
-        Ctx.Log(answer.Length == 0 ? "Отключено" : answer);
-        DevicesChanged?.Invoke();
-        UpdateConnectButton();
+            if (rc == AdbRunner.NotFound)
+            {
+                Ctx.Log($"adb не найден по пути: {Ctx.AdbPath}");
+                return;
+            }
+
+            var answer = (stdout + stderr).Trim();
+            Ctx.Log(answer.Length == 0 ? "Отключено" : answer);
+            DevicesChanged?.Invoke();
+        }
+        finally
+        {
+            UpdateConnectButton();
+        }
     }
 
     private async Task PairAsync()

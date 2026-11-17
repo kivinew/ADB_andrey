@@ -19,9 +19,9 @@
     <!-- Две основные карточки -->
     <Grid ColumnDefinitions="*,18,*">
 
-      <!-- Левая карточка: Подключение по IP / Wi-Fi -->
+      <!-- Левая карточка: сеть. Здесь всё для подключения по IP — адрес, кнопка, быстрый выбор. -->
       <Border Grid.Column="0" Classes="card--active">
-        <StackPanel Spacing="16">
+        <StackPanel Spacing="14">
           <StackPanel Spacing="8">
             <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
               <TextBlock Text="📶" FontSize="18" Foreground="#F5923E" VerticalAlignment="Center" />
@@ -52,30 +52,43 @@
             </StackPanel>
           </Grid>
 
-          <Button x:Name="PairBtn" Content="СОПРЯЖЕНИЕ..." Classes="btn--primary" HorizontalAlignment="Stretch" />
+          <!-- Кнопки сети: подключение и сопряжение — здесь же, рядом с адресом -->
+          <Grid ColumnDefinitions="*,10,Auto">
+            <Button Grid.Column="0" x:Name="ConnectBtn" Content="ПОДКЛЮЧИТЬСЯ"
+                    Classes="btn--primary" HorizontalAlignment="Stretch" />
+            <Button Grid.Column="2" x:Name="PairBtn" Content="СОПРЯЖЕНИЕ..."
+                    Classes="btn--ghost" />
+          </Grid>
 
-          <Border Background="{DynamicResource Field}" BorderBrush="{DynamicResource BorderDim}"
-                  BorderThickness="1" CornerRadius="10" Padding="12">
-            <StackPanel Spacing="3">
-              <TextBlock x:Name="InfoTitle" Text="Устройство не выбрано" FontSize="12" FontWeight="Bold"
-                         Foreground="{DynamicResource Text}" />
-              <TextBlock x:Name="InfoText" FontSize="11" Foreground="{DynamicResource Muted}" TextWrapping="Wrap"
-                         Text="Введите IP и порт, или выберите устройство в списке справа." />
-            </StackPanel>
-          </Border>
+          <TextBlock Text="Сопряжение нужно на Android 11+: включите «Отладку по Wi-Fi» на приставке и введите код из диалога."
+                     FontSize="10" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" />
+
+          <!-- Быстрый выбор адреса: история и избранное относятся к сетевому подключению -->
+          <StackPanel Spacing="8" Margin="0,2,0,0">
+            <TextBlock Text="ИСТОРИЯ ПОДКЛЮЧЕНИЙ" FontSize="10" FontWeight="Bold"
+                       Foreground="{DynamicResource Muted}" LetterSpacing="0.5" />
+            <ComboBox x:Name="HistoryBox" HorizontalAlignment="Stretch" />
+
+            <TextBlock Text="ИЗБРАННОЕ" FontSize="10" FontWeight="Bold"
+                       Foreground="{DynamicResource Muted}" LetterSpacing="0.5" Margin="0,4,0,0" />
+            <Grid ColumnDefinitions="*,10,Auto">
+              <ComboBox Grid.Column="0" x:Name="FavBox" HorizontalAlignment="Stretch" />
+              <Button Grid.Column="2" x:Name="FavAddBtn" Content="ДОБАВИТЬ" Classes="btn--ghost" />
+            </Grid>
+          </StackPanel>
         </StackPanel>
       </Border>
 
-      <!-- Правая карточка: Выбор устройства -->
+      <!-- Правая карточка: устройства adb. Выбор в списке сразу переключает устройство. -->
       <Border Grid.Column="2" Classes="card--active">
-        <StackPanel Spacing="16">
+        <StackPanel Spacing="14">
           <StackPanel Spacing="8">
             <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
               <TextBlock Text="📱" FontSize="18" Foreground="#4DD4FF" VerticalAlignment="Center" />
-              <TextBlock Text="ADB УСТРОЙСТВО" FontSize="15" FontWeight="Bold"
+              <TextBlock Text="ADB УСТРОЙСТВА" FontSize="15" FontWeight="Bold"
                          Foreground="{DynamicResource Text}" VerticalAlignment="Center" />
             </StackPanel>
-            <TextBlock Text="ПРОВОДНОЕ И СПИСОК УСТРОЙСТВ" FontSize="10" FontWeight="Bold"
+            <TextBlock Text="USB И СЕТЬ" FontSize="10" FontWeight="Bold"
                        Foreground="{DynamicResource Muted}" LetterSpacing="0.5" />
             <Border Classes="badge" HorizontalAlignment="Left">
               <StackPanel Orientation="Horizontal" Spacing="6">
@@ -87,39 +100,33 @@
           </StackPanel>
 
           <StackPanel Spacing="6">
-            <TextBlock Text="ВЫБОР УСТРОЙСТВА" FontSize="10" FontWeight="Bold"
+            <TextBlock Text="АКТИВНОЕ УСТРОЙСТВО" FontSize="10" FontWeight="Bold"
                        Foreground="{DynamicResource Muted}" LetterSpacing="0.5" />
             <ComboBox x:Name="DeviceBox" HorizontalAlignment="Stretch" IsEditable="True" />
           </StackPanel>
 
-          <Button x:Name="ConnectBtn" Content="ПОДКЛЮЧИТЬ" Classes="btn--primary" HorizontalAlignment="Stretch" />
+          <TextBlock Text="USB-устройства появляются в списке сами. Выбор устройства в списке сразу делает его активным."
+                     FontSize="10" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" />
 
-          <Button x:Name="RefreshBtn" Content="ОБНОВИТЬ" Classes="btn--ghost" HorizontalAlignment="Stretch" />
-        </StackPanel>
-      </Border>
-
-    </Grid>
-
-    <!-- Нижний блок: История и Избранное -->
-    <Grid ColumnDefinitions="*,18,*">
-      <Border Grid.Column="0" Classes="card" Padding="18">
-        <StackPanel Spacing="10">
-          <TextBlock Text="ИСТОРИЯ ПОДКЛЮЧЕНИЙ (10 ПОСЛЕДНИХ)" FontSize="10" FontWeight="Bold"
-                     Foreground="{DynamicResource Muted}" LetterSpacing="0.5" />
-          <ComboBox x:Name="HistoryBox" HorizontalAlignment="Stretch" />
-        </StackPanel>
-      </Border>
-
-      <Border Grid.Column="2" Classes="card" Padding="18">
-        <StackPanel Spacing="10">
-          <TextBlock Text="ИЗБРАННОЕ" FontSize="10" FontWeight="Bold"
-                     Foreground="{DynamicResource Muted}" LetterSpacing="0.5" />
           <Grid ColumnDefinitions="*,10,Auto">
-            <ComboBox Grid.Column="0" x:Name="FavBox" HorizontalAlignment="Stretch" />
-            <Button Grid.Column="2" x:Name="FavAddBtn" Content="ДОБАВИТЬ" Classes="btn--ghost" />
+            <Button Grid.Column="0" x:Name="RefreshBtn" Content="ОБНОВИТЬ СПИСОК"
+                    Classes="btn--ghost" HorizontalAlignment="Stretch" />
+            <Button Grid.Column="2" x:Name="DisconnectBtn" Content="ОТКЛЮЧИТЬ"
+                    Classes="btn--ghost" IsEnabled="False" />
           </Grid>
+
+          <Border Background="{DynamicResource Field}" BorderBrush="{DynamicResource BorderDim}"
+                  BorderThickness="1" CornerRadius="10" Padding="12">
+            <StackPanel Spacing="3">
+              <TextBlock x:Name="InfoTitle" Text="Устройство не выбрано" FontSize="12" FontWeight="Bold"
+                         Foreground="{DynamicResource Text}" />
+              <TextBlock x:Name="InfoText" FontSize="11" Foreground="{DynamicResource Muted}" TextWrapping="Wrap"
+                         Text="Подключитесь по IP слева или выберите устройство из списка." />
+            </StackPanel>
+          </Border>
         </StackPanel>
       </Border>
+
     </Grid>
 
   </StackPanel>
