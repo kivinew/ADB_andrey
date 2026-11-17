@@ -108,12 +108,8 @@
           <TextBlock Text="USB-устройства появляются в списке сами. Выбор устройства в списке сразу делает его активным."
                      FontSize="10" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" />
 
-          <Grid ColumnDefinitions="*,10,Auto">
-            <Button Grid.Column="0" x:Name="RefreshBtn" Content="ОБНОВИТЬ СПИСОК"
-                    Classes="btn--ghost" HorizontalAlignment="Stretch" />
-            <Button Grid.Column="2" x:Name="DisconnectBtn" Content="ОТКЛЮЧИТЬ"
-                    Classes="btn--ghost" IsEnabled="False" />
-          </Grid>
+          <Button x:Name="RefreshBtn" Content="ОБНОВИТЬ СПИСОК"
+                  Classes="btn--ghost" HorizontalAlignment="Stretch" />
 
           <Border Background="{DynamicResource Field}" BorderBrush="{DynamicResource BorderDim}"
                   BorderThickness="1" CornerRadius="10" Padding="12">

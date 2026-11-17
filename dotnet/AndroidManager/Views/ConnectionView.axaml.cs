@@ -24,8 +24,7 @@ public partial class ConnectionView : UserControl
     {
         InitializeComponent();
 
-        ConnectBtn.Click += (_, _) => _ = ConnectAsync();
-        DisconnectBtn.Click += (_, _) => _ = DisconnectAsync();
+        ConnectBtn.Click += (_, _) => _ = ToggleConnectionAsync();
         PairBtn.Click += (_, _) => _ = PairAsync();
         FavAddBtn.Click += (_, _) => AddFavorite();
         RefreshBtn.Click += (_, _) => DevicesChanged?.Invoke();
@@ -152,10 +151,25 @@ public partial class ConnectionView : UserControl
         Ctx.Log($"В избранное: {name}");
     }
 
+    /// <summary>Активное устройство сменилось — обновляем вид кнопки подключения.</summary>
+    public void RefreshConnectionState() => UpdateConnectButton();
+
     /// <summary>Отключать можно только сетевое подключение — USB отключается кабелем.</summary>
     private void UpdateConnectButton()
     {
-        DisconnectBtn.IsEnabled = !string.IsNullOrEmpty(Ctx.Serial) && Ctx.Serial.Contains(':');
+        var network = !string.IsNullOrEmpty(Ctx.Serial) && Ctx.Serial.Contains(':');
+        ConnectBtn.Content = network ? "ОТКЛЮЧИТЬ" : "ПОДКЛЮЧИТЬСЯ";
+    }
+
+    private async Task ToggleConnectionAsync()
+    {
+        if (!string.IsNullOrEmpty(Ctx.Serial) && Ctx.Serial.Contains(':'))
+        {
+            await DisconnectAsync();
+            return;
+        }
+
+        await ConnectAsync();
     }
 
     private async Task ConnectAsync()
@@ -242,7 +256,7 @@ public partial class ConnectionView : UserControl
             return;
         }
 
-        DisconnectBtn.IsEnabled = false;
+        ConnectBtn.IsEnabled = false;
 
         try
         {

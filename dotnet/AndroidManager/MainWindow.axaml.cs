@@ -146,6 +146,7 @@ public partial class MainWindow : Window
             return;
 
         _ctx.Serial = serial;
+        ConnectionTab.RefreshConnectionState();
 
         ConsoleTab.OnDeviceChanged();
         AppsTab.OnDeviceChanged();
