@@ -13,8 +13,8 @@
         <StackPanel x:Name="QuickBar" Orientation="Horizontal" />
       </ScrollViewer>
 
-      <!-- Кастомные кнопки панели «Консоль» (создаются во вкладке «Кастомные кнопки») -->
-      <WrapPanel x:Name="CustomBar" Orientation="Horizontal" IsVisible="False" />
+      <!-- Кастомные кнопки этой вкладки: «+ Кнопка» создаёт, ПКМ — изменить/удалить -->
+      <WrapPanel x:Name="CustomBar" Orientation="Horizontal" />
 
       <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="6">
         <TextBlock Grid.Column="0" Text="$" VerticalAlignment="Center" FontFamily="Consolas" />

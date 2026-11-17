@@ -13,8 +13,8 @@
     <TextBlock Grid.Row="1" x:Name="CountLabel" Text="Приложения не загружены"
                Foreground="{DynamicResource Muted}" />
 
-    <!-- Кастомные кнопки панели «Приложения» (создаются во вкладке «Кастомные кнопки») -->
-    <WrapPanel Grid.Row="2" x:Name="CustomBar" Orientation="Horizontal" IsVisible="False" />
+    <!-- Кастомные кнопки этой вкладки: «+ Кнопка» создаёт, ПКМ — изменить/удалить -->
+    <WrapPanel Grid.Row="2" x:Name="CustomBar" Orientation="Horizontal" />
 
     <Border Grid.Row="3" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="10"
             ClipToBounds="True" MaxHeight="420">

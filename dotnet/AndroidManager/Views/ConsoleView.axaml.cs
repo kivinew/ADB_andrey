@@ -54,8 +54,7 @@ public partial class ConsoleView : UserControl
         if (Ctx is null)
             return;
 
-        var count = CustomBars.Render(Ctx, CustomBars.PanelConsole, CustomBar, TopLevel.GetTopLevel(this));
-        CustomBar.IsVisible = count > 0;
+        CustomBars.Render(Ctx, CustomBars.PanelConsole, CustomBar, TopLevel.GetTopLevel(this), RefreshCustomBar);
     }
 
     /// <summary>Размер шрифта консоли. Вызывается при загрузке и после сохранения настроек.</summary>

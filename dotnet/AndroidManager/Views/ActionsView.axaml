@@ -12,8 +12,8 @@
       <TextBlock Text="ДЕЙСТВИЯ" FontSize="18" FontWeight="Bold"
                  Foreground="{DynamicResource HeadText}" />
 
-      <!-- Кастомные кнопки панели «Действия» (создаются во вкладке «Кастомные кнопки») -->
-      <Border x:Name="CustomBarCard" Classes="card" Padding="16" IsVisible="False">
+      <!-- Кастомные кнопки этой вкладки: «+ Кнопка» создаёт, ПКМ — изменить/удалить -->
+      <Border x:Name="CustomBarCard" Classes="card" Padding="16">
         <StackPanel Spacing="8">
           <TextBlock Text="МОИ КНОПКИ" FontSize="12" FontWeight="Bold"
                      Foreground="{DynamicResource Accent}" />

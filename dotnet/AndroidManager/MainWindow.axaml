@@ -27,7 +27,7 @@
             <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
               <StackPanel HorizontalAlignment="Right">
                 <TextBlock Text="ВЕРСИЯ UI" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource Muted}" HorizontalAlignment="Right" />
-                <TextBlock x:Name="UiVersion" Text="v1.7" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource Text}" HorizontalAlignment="Right" />
+                <TextBlock x:Name="UiVersion" Text="v1.8" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource Text}" HorizontalAlignment="Right" />
               </StackPanel>
               <StackPanel HorizontalAlignment="Right">
                 <TextBlock Text="ЯДРО" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource Muted}" HorizontalAlignment="Right" />
@@ -86,9 +86,6 @@
               <Button x:Name="BtnActions" Classes="nav-btn" ToolTip.Tip="Действия">
                 <TextBlock Text="⚡" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
               </Button>
-              <Button x:Name="BtnBars" Classes="nav-btn" ToolTip.Tip="Кастомные кнопки">
-                <TextBlock Text="▣" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
-              </Button>
             </StackPanel>
 
             <StackPanel Grid.Row="1" Spacing="10" VerticalAlignment="Bottom">
@@ -131,11 +128,6 @@
             <!-- Процессы -->
             <Border Classes="panel" x:Name="PanelProcs" IsVisible="False" Margin="32">
               <views:ProcsView x:Name="ProcsTab" />
-            </Border>
-
-            <!-- Кнопки -->
-            <Border Classes="panel" x:Name="PanelBars" IsVisible="False" Margin="32">
-              <views:BarsView x:Name="BarsTab" />
             </Border>
 
             <!-- Действия -->

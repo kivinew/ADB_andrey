@@ -43,8 +43,7 @@ public partial class AppsView : UserControl
         if (Ctx is null)
             return;
 
-        var count = CustomBars.Render(Ctx, CustomBars.PanelApps, CustomBar, TopLevel.GetTopLevel(this));
-        CustomBar.IsVisible = count > 0;
+        CustomBars.Render(Ctx, CustomBars.PanelApps, CustomBar, TopLevel.GetTopLevel(this), RefreshCustomBar);
     }
 
     private async Task RefreshAsync()

@@ -72,8 +72,7 @@ public partial class ActionsView : UserControl
         if (Ctx is null)
             return;
 
-        var count = CustomBars.Render(Ctx, CustomBars.PanelTools, CustomBar, TopLevel.GetTopLevel(this));
-        CustomBarCard.IsVisible = count > 0;
+        CustomBars.Render(Ctx, CustomBars.PanelTools, CustomBar, TopLevel.GetTopLevel(this), RefreshCustomBar);
     }
 
     private class KeyItem

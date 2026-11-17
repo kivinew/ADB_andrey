@@ -42,7 +42,6 @@ public partial class MainWindow : Window
         AppsTab.Ctx = _ctx;
         CardsTab.Ctx = _ctx;
         ProcsTab.Ctx = _ctx;
-        BarsTab.Ctx = _ctx;
         ActionsTab.Ctx = _ctx;
         SettingsTab.Ctx = _ctx;
         LogsTab.Attach(_ctx);
@@ -57,7 +56,6 @@ public partial class MainWindow : Window
         BtnApps.Click += (_, _) => ShowPage("apps");
         BtnCards.Click += (_, _) => ShowPage("cards");
         BtnProcs.Click += (_, _) => ShowPage("procs");
-        BtnBars.Click += (_, _) => ShowPage("bars");
         BtnActions.Click += (_, _) => ShowPage("actions");
         BtnSettings.Click += (_, _) => ShowPage("settings");
         BtnLogs.Click += (_, _) => ShowPage("logs");
@@ -85,26 +83,24 @@ public partial class MainWindow : Window
         PanelApps.IsVisible = page == "apps";
         PanelCards.IsVisible = page == "cards";
         PanelProcs.IsVisible = page == "procs";
-        PanelBars.IsVisible = page == "bars";
         PanelActions.IsVisible = page == "actions";
         PanelLogs.IsVisible = page == "logs";
         PanelSettings.IsVisible = page == "settings";
 
         SetActiveSidebar(page);
 
-        // Кастомные кнопки редактируются на своей вкладке — при переходе перерисовываем их на целевой.
+        // Кастомные кнопки редактируются прямо на вкладке — при переходе перерисовываем их.
         switch (page)
         {
             case "console": ConsoleTab.RefreshCustomBar(); break;
             case "apps": AppsTab.RefreshCustomBar(); break;
             case "actions": ActionsTab.RefreshCustomBar(); break;
-            case "bars": BarsTab.RefreshBars(); break;
         }
     }
 
     private void SetActiveSidebar(string page)
     {
-        foreach (var btn in new[] { BtnHome, BtnConsole, BtnApps, BtnCards, BtnProcs, BtnBars, BtnActions, BtnLogs, BtnSettings })
+        foreach (var btn in new[] { BtnHome, BtnConsole, BtnApps, BtnCards, BtnProcs, BtnActions, BtnLogs, BtnSettings })
         {
             var classes = btn.Classes;
             if (classes.Contains("is-active"))
@@ -118,7 +114,6 @@ public partial class MainWindow : Window
             "apps" => BtnApps,
             "cards" => BtnCards,
             "procs" => BtnProcs,
-            "bars" => BtnBars,
             "actions" => BtnActions,
             "logs" => BtnLogs,
             "settings" => BtnSettings,
