@@ -45,7 +45,17 @@ public partial class ConsoleView : UserControl
         }
 
         _timer.Tick += (_, _) => Drain();
-        Loaded += (_, _) => ApplyFont();
+        Loaded += (_, _) => { ApplyFont(); RefreshCustomBar(); };
+    }
+
+    /// <summary>Перерисовывает кастомные кнопки панели «Консоль».</summary>
+    public void RefreshCustomBar()
+    {
+        if (Ctx is null)
+            return;
+
+        var count = CustomBars.Render(Ctx, CustomBars.PanelConsole, CustomBar, TopLevel.GetTopLevel(this));
+        CustomBar.IsVisible = count > 0;
     }
 
     /// <summary>Размер шрифта консоли. Вызывается при загрузке и после сохранения настроек.</summary>

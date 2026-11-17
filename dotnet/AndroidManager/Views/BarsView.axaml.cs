@@ -18,15 +18,10 @@ namespace AndroidManager.Views;
 
 public partial class BarsView : UserControl
 {
-    private const string PanelTools = "tools";
-    private const string PanelApps = "apps";
-    private const string PanelScripts = "scripts";
-    private const string PanelConsole = "console";
+    private static readonly string[] PanelNames = { CustomBars.PanelTools, CustomBars.PanelApps, CustomBars.PanelConsole };
+    private static readonly string[] PanelTitles = { "Действия", "Приложения", "Консоль" };
 
-    private static readonly string[] PanelNames = { PanelTools, PanelApps, PanelScripts, PanelConsole };
-    private static readonly string[] PanelTitles = { "Инструменты", "Приложения", "Скрипты", "Консоль" };
-
-    private string _currentPanel = PanelTools;
+    private string _currentPanel = CustomBars.PanelTools;
 
     public AppState Ctx { get; set; } = null!;
 
@@ -58,11 +53,9 @@ public partial class BarsView : UserControl
     /// <summary>Возвращает список кнопок панели, создавая его при необходимости.</summary>
     private List<BarItem> GetPanelItems()
     {
-        if (Ctx is null || Ctx.Settings.Bars is null)
+        if (Ctx is null)
             return new();
-        if (!Ctx.Settings.Bars.ContainsKey(_currentPanel))
-            Ctx.Settings.Bars[_currentPanel] = new();
-        return Ctx.Settings.Bars[_currentPanel];
+        return CustomBars.Items(Ctx, _currentPanel);
     }
 
     private void Render()
@@ -82,7 +75,7 @@ public partial class BarsView : UserControl
                 Tag = idx,
             };
 
-            btn.Click += (_, _) => ExecuteButton(item);
+            btn.Click += (_, _) => CustomBars.Run(Ctx, item, TopLevel.GetTopLevel(this));
 
             var menu = new ContextMenu();
             menu.Items.Add(new MenuItem { Header = "Изменить", Tag = idx });
@@ -110,75 +103,6 @@ public partial class BarsView : UserControl
 
             btn.ContextMenu = menu;
             ButtonPanel.Children.Add(btn);
-        }
-    }
-
-    private void ExecuteButton(BarItem item)
-    {
-        var type = item.Type ?? "shell";
-        var cmd = item.Cmd;
-
-        if (type == "pc")
-        {
-            _ = Task.Run(() => ExecutePcCommand(cmd, item.Name));
-            return;
-        }
-
-        var serial = Ctx?.Serial;
-        if (string.IsNullOrEmpty(serial))
-        {
-            Ctx?.Log("Сначала подключите устройство");
-            return;
-        }
-
-        // Подставляем {clipboard} и {serial} для shell-команд
-        string finalCmd;
-        try
-        {
-            var clip = TopLevel.GetTopLevel(this)!.Clipboard.GetTextAsync().GetAwaiter().GetResult();
-            finalCmd = cmd.Replace("{clipboard}", clip ?? "").Replace("{serial}", serial);
-        }
-        catch
-        {
-            finalCmd = cmd.Replace("{serial}", serial);
-        }
-
-        _ = Task.Run(() =>
-        {
-            var (rc, out_, err) = new AdbClient(Ctx.AdbPath, serial, 60).Shell(finalCmd, 60);
-            var answer = (out_ + err).Trim();
-            Dispatcher.UIThread.Post(() =>
-            {
-                if (answer.Length > 0)
-                    Ctx.Log($"{item.Name}: {answer}");
-                else if (rc == 0)
-                    Ctx.Log($"{item.Name}: выполнено");
-                else
-                    Ctx.Log($"{item.Name}: ошибка rc={rc}");
-            });
-        });
-    }
-
-    private static void ExecutePcCommand(string cmd, string name)
-    {
-        try
-        {
-            var psi = new ProcessStartInfo
-            {
-                FileName = "cmd.exe",
-                Arguments = "/c " + cmd,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-            };
-            using var proc = Process.Start(psi);
-            if (proc == null) return;
-            proc.WaitForExit(30000);
-        }
-        catch (Exception ex)
-        {
-            // Логирование через Ctx невозможно из статического метода; игнорируем.
         }
     }
 

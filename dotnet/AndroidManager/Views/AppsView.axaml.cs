@@ -20,6 +20,7 @@ public partial class AppsView : UserControl
 
         RefreshBtn.Click += (_, _) => _ = RefreshAsync();
         FilterBox.TextChanged += (_, _) => ApplyFilter();
+        Loaded += (_, _) => RefreshCustomBar();
 
         RunBtn.Click += (_, _) => _ = ActAsync("monkey -p {pkg} -c android.intent.category.LAUNCHER 1", null);
         StopBtn.Click += (_, _) => _ = ActAsync("am force-stop {pkg}", null);
@@ -34,6 +35,16 @@ public partial class AppsView : UserControl
         _packages = new();
         PkgList.ItemsSource = null;
         CountLabel.Text = "Приложения не загружены";
+    }
+
+    /// <summary>Перерисовывает кастомные кнопки панели «Приложения».</summary>
+    public void RefreshCustomBar()
+    {
+        if (Ctx is null)
+            return;
+
+        var count = CustomBars.Render(Ctx, CustomBars.PanelApps, CustomBar, TopLevel.GetTopLevel(this));
+        CustomBar.IsVisible = count > 0;
     }
 
     private async Task RefreshAsync()

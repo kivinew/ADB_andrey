@@ -63,7 +63,17 @@ public partial class ActionsView : UserControl
         Preset1080.Click += (_, _) => ResBox.Text = "1920x1080";
         Preset2160.Click += (_, _) => ResBox.Text = "3840x2160";
 
-        Loaded += (_, _) => { LoadVysorPath(); ReloadPrograms(); _ = RefreshScreenInfoAsync(); };
+        Loaded += (_, _) => { LoadVysorPath(); ReloadPrograms(); RefreshCustomBar(); _ = RefreshScreenInfoAsync(); };
+    }
+
+    /// <summary>Перерисовывает кастомные кнопки панели «Действия».</summary>
+    public void RefreshCustomBar()
+    {
+        if (Ctx is null)
+            return;
+
+        var count = CustomBars.Render(Ctx, CustomBars.PanelTools, CustomBar, TopLevel.GetTopLevel(this));
+        CustomBarCard.IsVisible = count > 0;
     }
 
     private class KeyItem

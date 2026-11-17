@@ -12,6 +12,15 @@
       <TextBlock Text="ДЕЙСТВИЯ" FontSize="18" FontWeight="Bold"
                  Foreground="{DynamicResource HeadText}" />
 
+      <!-- Кастомные кнопки панели «Действия» (создаются во вкладке «Кастомные кнопки») -->
+      <Border x:Name="CustomBarCard" Classes="card" Padding="16" IsVisible="False">
+        <StackPanel Spacing="8">
+          <TextBlock Text="МОИ КНОПКИ" FontSize="12" FontWeight="Bold"
+                     Foreground="{DynamicResource Accent}" />
+          <WrapPanel x:Name="CustomBar" Orientation="Horizontal" />
+        </StackPanel>
+      </Border>
+
       <!-- scrcpy -->
       <Border Classes="card" Margin="0 0 0 10" Padding="16">
         <StackPanel Spacing="10">

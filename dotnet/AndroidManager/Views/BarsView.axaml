@@ -10,7 +10,7 @@
     <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0 0 0 10">
       <TextBlock Text="КАСТОМНЫЕ КНОПКИ" FontSize="18" FontWeight="Bold"
                  Foreground="{DynamicResource HeadText}" />
-      <TextBlock Text="Кнопки выполняют команды в shell устройства или на ПК. ПКМ по кнопке — изменить/удалить/переместить."
+      <TextBlock Text="Кнопка создаётся для одной из панелей и появляется на соответствующей вкладке: Действия, Приложения или Консоль. Здесь — мастерская: создать, изменить, удалить, переставить. ПКМ по кнопке — меню."
                  FontSize="12" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" />
 
       <StackPanel Orientation="Horizontal" Spacing="10">

@@ -91,6 +91,15 @@ public partial class MainWindow : Window
         PanelSettings.IsVisible = page == "settings";
 
         SetActiveSidebar(page);
+
+        // Кастомные кнопки редактируются на своей вкладке — при переходе перерисовываем их на целевой.
+        switch (page)
+        {
+            case "console": ConsoleTab.RefreshCustomBar(); break;
+            case "apps": AppsTab.RefreshCustomBar(); break;
+            case "actions": ActionsTab.RefreshCustomBar(); break;
+            case "bars": BarsTab.RefreshBars(); break;
+        }
     }
 
     private void SetActiveSidebar(string page)

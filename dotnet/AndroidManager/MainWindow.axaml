@@ -27,7 +27,7 @@
             <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
               <StackPanel HorizontalAlignment="Right">
                 <TextBlock Text="ВЕРСИЯ UI" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource Muted}" HorizontalAlignment="Right" />
-                <TextBlock x:Name="UiVersion" Text="v1.6" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource Text}" HorizontalAlignment="Right" />
+                <TextBlock x:Name="UiVersion" Text="v1.7" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource Text}" HorizontalAlignment="Right" />
               </StackPanel>
               <StackPanel HorizontalAlignment="Right">
                 <TextBlock Text="ЯДРО" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource Muted}" HorizontalAlignment="Right" />
@@ -68,26 +68,26 @@
               <Button x:Name="BtnHome" Classes="nav-btn is-active" ToolTip.Tip="Подключение">
                 <TextBlock Text="📱" FontSize="16" Foreground="#B89EFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
               </Button>
-              <Button x:Name="BtnConsole" Classes="nav-btn" ToolTip.Tip="Консоль">
-                <TextBlock Text="▢" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
+              <Button x:Name="BtnCards" Classes="nav-btn" ToolTip.Tip="Виджеты">
+                <TextBlock Text="▭" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
               </Button>
               <Button x:Name="BtnApps" Classes="nav-btn" ToolTip.Tip="Приложения">
                 <TextBlock Text="📦" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
               </Button>
-              <Button x:Name="BtnCards" Classes="nav-btn" ToolTip.Tip="Виджеты">
-                <TextBlock Text="▭" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
-              </Button>
               <Button x:Name="BtnProcs" Classes="nav-btn" ToolTip.Tip="Процессы">
                 <TextBlock Text="⌘" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
               </Button>
-              <Button x:Name="BtnBars" Classes="nav-btn" ToolTip.Tip="Кнопки">
-                <TextBlock Text="▣" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
+              <Button x:Name="BtnConsole" Classes="nav-btn" ToolTip.Tip="Консоль">
+                <TextBlock Text="▢" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
+              </Button>
+              <Button x:Name="BtnLogs" Classes="nav-btn" ToolTip.Tip="Логи">
+                <TextBlock Text="▤" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
               </Button>
               <Button x:Name="BtnActions" Classes="nav-btn" ToolTip.Tip="Действия">
                 <TextBlock Text="⚡" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
               </Button>
-              <Button x:Name="BtnLogs" Classes="nav-btn" ToolTip.Tip="Логи">
-                <TextBlock Text="▤" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
+              <Button x:Name="BtnBars" Classes="nav-btn" ToolTip.Tip="Кастомные кнопки">
+                <TextBlock Text="▣" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
               </Button>
             </StackPanel>
 
