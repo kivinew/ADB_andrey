@@ -27,23 +27,20 @@
             <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
               <StackPanel HorizontalAlignment="Right">
                 <TextBlock Text="ВЕРСИЯ UI" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource Muted}" HorizontalAlignment="Right" />
-                <TextBlock x:Name="UiVersion" Text="v1.0" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource Text}" HorizontalAlignment="Right" />
+                <TextBlock x:Name="UiVersion" Text="v1.1" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource Text}" HorizontalAlignment="Right" />
               </StackPanel>
               <StackPanel HorizontalAlignment="Right">
                 <TextBlock Text="ЯДРО" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource Muted}" HorizontalAlignment="Right" />
-                <TextBlock x:Name="CoreVersion" Text="v1.0" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource HeadText}" HorizontalAlignment="Right" />
+                <TextBlock x:Name="CoreVersion" Text="v1.1" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource HeadText}" HorizontalAlignment="Right" />
               </StackPanel>
 
-              <Button x:Name="BtnLogs" Classes="icon-btn" ToolTip.Tip="Логи">
-                <TextBlock Text="📋" FontSize="14" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
+              <Button x:Name="HistoryBtn" Classes="icon-btn" ToolTip.Tip="История и обновления">
+                <TextBlock Text="↻" FontSize="14" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
               </Button>
+
+              <Border Background="{DynamicResource BorderDim}" Width="1" Height="20" VerticalAlignment="Center" />
+
             </StackPanel>
-
-            <Button x:Name="HistoryBtn" Classes="icon-btn" ToolTip.Tip="История и обновления">
-              <TextBlock Text="↻" FontSize="14" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
-            </Button>
-
-            <Border Background="{DynamicResource BorderDim}" Width="1" Height="20" VerticalAlignment="Center" />
 
             <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
               <Button x:Name="MinBtn" Classes="win-btn" ToolTip.Tip="Свернуть">
@@ -88,6 +85,9 @@
               </Button>
               <Button x:Name="BtnActions" Classes="nav-btn" ToolTip.Tip="Действия">
                 <TextBlock Text="⚡" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
+              </Button>
+              <Button x:Name="BtnLogs" Classes="nav-btn" ToolTip.Tip="Логи">
+                <TextBlock Text="▤" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
               </Button>
             </StackPanel>
 
@@ -141,6 +141,11 @@
             <!-- Действия -->
             <Border Classes="panel" x:Name="PanelActions" IsVisible="False" Margin="32">
               <views:ActionsView x:Name="ActionsTab" />
+            </Border>
+
+            <!-- Логи -->
+            <Border Classes="panel" x:Name="PanelLogs" IsVisible="False" Margin="32">
+              <views:LogView x:Name="LogsTab" />
             </Border>
 
           </Grid>

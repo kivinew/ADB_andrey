@@ -125,8 +125,20 @@ public partial class ActionsView : UserControl
             return;
         }
 
-        var scrcpy = Paths.FindTool(ScrcpyExeName);
-        var args = new List<string> { scrcpy, "-s", serial, "--video-codec", ScCodec.SelectedItem as string ?? "h264" };
+        var scrcpyPath = FindScrcpyPath();
+        if (string.IsNullOrEmpty(scrcpyPath))
+        {
+            var local = System.IO.Path.Combine(Paths.Base, "tools", ScrcpyExeName, ScrcpyExeName + ".exe");
+            Ctx.Log($"scrcpy не найден. Положите scrcpy.exe в: {local} или добавьте в PATH. Текущая папка программы: {Paths.Base}");
+            return;
+        }
+
+        // Ищем adb: сначала рядом с программой, потом в PATH. Без этого scrcpy не найдёт adb.
+        var adbPath = FindAdbPath();
+        Ctx.Log($"scrcpy: {scrcpyPath}");
+        Ctx.Log($"adb: {adbPath}");
+
+        var args = new List<string> { "-s", serial, "--video-codec", ScCodec.SelectedItem as string ?? "h264" };
 
         if (!string.IsNullOrWhiteSpace(ScMax.Text) && int.TryParse(ScMax.Text, out var ms) && ms > 0)
             args.AddRange(["--max-size", ScMax.Text]);
@@ -138,30 +150,107 @@ public partial class ActionsView : UserControl
         if (ScAwake.IsChecked == true) args.Add("--stay-awake");
         if (ScOff.IsChecked == true) args.Add("--turn-screen-off");
 
+        // scrcpy-server — JAR-файл, который scrcpy отправляет на устройство.
+        // Без него scrcpy падает: "scrcpy-server does not exist or is not a regular file".
+        // Если его нет рядом со scrcpy.exe — пробуем скопировать из Android-manager.
+        var serverPath = Path.Combine(Path.GetDirectoryName(scrcpyPath) ?? "", "scrcpy-server");
+        if (!File.Exists(serverPath))
+        {
+            var candidates = new[]
+            {
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Android-manager", "tools", "scrcpy", "scrcpy-server"),
+                Path.Combine(Paths.Base, "..", "..", "..", "..", "..", "Android-manager", "tools", "scrcpy", "scrcpy-server"),
+            };
+            foreach (var c in candidates)
+            {
+                if (File.Exists(c))
+                {
+                    try { File.Copy(c, serverPath, true); Ctx.Log($"scrcpy-server скопирован из {c}"); }
+                    catch (Exception ex) { Ctx.Log($"Не удалось скопировать scrcpy-server: {ex.Message}"); }
+                    break;
+                }
+            }
+        }
+
+        var scrcpyDir = Path.GetDirectoryName(scrcpyPath) ?? "";
+
         try
         {
+            // Запускаем как GUI-процесс (как в Python-версии): без перехвата вывода.
+            // scrcpy — оконное приложение, оно не завершается до закрытия окна.
             var psi = new ProcessStartInfo
             {
-                FileName = args[0],
+                FileName = scrcpyPath,
                 UseShellExecute = false,
                 CreateNoWindow = true,
             };
-            foreach (var a in args.Skip(1)) psi.ArgumentList.Add(a);
+            foreach (var a in args) psi.ArgumentList.Add(a);
             // scrcpy ищет adb через переменную окружения ADB — передаём путь, как в Python-версии.
-            psi.Environment["ADB"] = Ctx.AdbPath;
+            psi.Environment["ADB"] = adbPath;
+            psi.Environment["PATH"] = scrcpyDir + Path.PathSeparator + (psi.Environment["PATH"] ?? "");
+
             var proc = Process.Start(psi);
             if (proc is null)
                 throw new InvalidOperationException("scrcpy не запустился");
-            Ctx.Log("scrcpy запущен");
-        }
-        catch (Win32Exception)
-        {
-            Ctx.Log($"scrcpy не найден по пути: {args[0]}. Установите scrcpy рядом с программой (tools/scrcpy/scrcpy.exe) или в PATH");
+
+            // Отслеживаем выход: если scrcpy сразу упал — увидим код и сообщение.
+            proc.EnableRaisingEvents = true;
+            proc.Exited += (_, _) =>
+            {
+                var code = proc.ExitCode;
+                Ctx.Log($"scrcpy завершился (код {code})");
+            };
+
+            Ctx.Log($"scrcpy запущен (PID {proc.Id})");
         }
         catch (Exception ex)
         {
             Ctx.Log($"Не удалось запустить scrcpy: {ex.Message}");
         }
+    }
+
+    private string FindAdbPath()
+    {
+        var local = System.IO.Path.Combine(Paths.Base, "tools", "adb", "adb.exe");
+        if (File.Exists(local))
+            return local;
+
+        // Ищем в PATH
+        var pathEnv = Environment.GetEnvironmentVariable("PATH");
+        if (pathEnv != null)
+        {
+            foreach (var dir in pathEnv.Split(Path.PathSeparator))
+            {
+                if (string.IsNullOrEmpty(dir)) continue;
+                var candidate = System.IO.Path.Combine(dir, "adb.exe");
+                if (File.Exists(candidate))
+                    return candidate;
+            }
+        }
+
+        return "adb";
+    }
+
+    private string? FindScrcpyPath()
+    {
+        var local = System.IO.Path.Combine(Paths.Base, "tools", ScrcpyExeName, ScrcpyExeName + ".exe");
+        if (File.Exists(local))
+            return local;
+
+        // Ищем в PATH, как Python shutil.which
+        var pathEnv = Environment.GetEnvironmentVariable("PATH");
+        if (pathEnv != null)
+        {
+            foreach (var dir in pathEnv.Split(Path.PathSeparator))
+            {
+                if (string.IsNullOrEmpty(dir)) continue;
+                var candidate = System.IO.Path.Combine(dir, ScrcpyExeName + ".exe");
+                if (File.Exists(candidate))
+                    return candidate;
+            }
+        }
+
+        return null;
     }
 
     private async void TakeScreenshot()

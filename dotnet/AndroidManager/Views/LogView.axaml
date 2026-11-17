@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="AndroidManager.Views.LogView">
+  <Grid RowDefinitions="Auto,1*">
+    <Border Grid.Row="0" Background="{DynamicResource Sidebar}" Padding="16,12">
+      <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+        <Button x:Name="ClearBtn" Classes="btn--ghost" Content="Очистить" ToolTip.Tip="Очистить лог" />
+        <Button x:Name="CopyBtn" Classes="btn--ghost" Content="Копировать" ToolTip.Tip="Копировать всё в буфер" />
+      </StackPanel>
+    </Border>
+    <Border Grid.Row="1" Background="{DynamicResource Bg}" Padding="8">
+      <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <ListBox x:Name="LogList" Background="Transparent" BorderThickness="0" Padding="0">
+          <ListBox.Styles>
+            <Style Selector="ListBoxItem">
+              <Setter Property="Padding" Value="4,2" />
+              <Setter Property="Background" Value="Transparent" />
+              <Setter Property="Foreground" Value="{DynamicResource Text}" />
+            </Style>
+          </ListBox.Styles>
+        </ListBox>
+      </ScrollViewer>
+    </Border>
+  </Grid>
+</UserControl>

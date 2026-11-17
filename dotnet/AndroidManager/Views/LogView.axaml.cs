@@ -1,0 +1,45 @@
+using AndroidManager.Services;
+using Avalonia.Controls;
+using Avalonia.Threading;
+using System.Linq;
+
+namespace AndroidManager.Views;
+
+public partial class LogView : UserControl
+{
+    private AppState _ctx = null!;
+
+    public LogView()
+    {
+        InitializeComponent();
+
+        ClearBtn.Click += (_, _) => LogList.Items.Clear();
+        CopyBtn.Click += (_, _) => CopyAll();
+    }
+
+    public void Attach(AppState ctx)
+    {
+        _ctx = ctx;
+        _ctx.Logged += OnLogged;
+    }
+
+    private void OnLogged(string text)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            LogList.Items.Add(text);
+            if (LogList.Items.Count > 0)
+                LogList.ScrollIntoView(LogList.Items[LogList.Items.Count - 1]);
+        });
+    }
+
+    private async void CopyAll()
+    {
+        var all = string.Join("\n", LogList.Items.OfType<string>());
+        if (string.IsNullOrEmpty(all)) return;
+
+        var top = TopLevel.GetTopLevel(this);
+        if (top?.Clipboard is { } clip)
+            await clip.SetTextAsync(all);
+    }
+}
