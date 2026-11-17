@@ -6,6 +6,11 @@
       <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
         <Button x:Name="ClearBtn" Classes="btn--ghost" Content="Очистить" ToolTip.Tip="Очистить лог" />
         <Button x:Name="CopyBtn" Classes="btn--ghost" Content="Копировать" ToolTip.Tip="Копировать всё в буфер" />
+        <Border Background="{DynamicResource BorderDim}" Width="1" Height="18" VerticalAlignment="Center" />
+        <Button x:Name="TopBtn" Classes="btn--ghost" Content="⤒ В начало" ToolTip.Tip="Прокрутить к первой записи" />
+        <Button x:Name="BottomBtn" Classes="btn--ghost" Content="⤓ В конец" ToolTip.Tip="Прокрутить к последней записи" />
+        <CheckBox x:Name="AutoScroll" Content="Автопрокрутка" IsChecked="True"
+                  ToolTip.Tip="Снимайте, чтобы читать лог, пока добавляются новые записи" VerticalAlignment="Center" />
       </StackPanel>
     </Border>
     <Border Grid.Row="1" Background="{DynamicResource Bg}" Padding="8">

@@ -9,6 +9,7 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using System.ComponentModel;
 
 namespace AndroidManager.Views;
@@ -90,6 +91,24 @@ public partial class CardsView : UserControl
         EditBtn.Click += (_, _) => EditCard(_selected);
         DeleteBtn.Click += (_, _) => DeleteCard(_selected);
         Cards.SelectionChanged += OnCardSelected;
+
+        var cardMenu = new ContextMenu();
+        var miEdit = new MenuItem { Header = "Изменить" };
+        var miDelete = new MenuItem { Header = "Удалить" };
+        cardMenu.Items.Add(miEdit);
+        cardMenu.Items.Add(miDelete);
+        Cards.ContextMenu = cardMenu;
+        miEdit.Click += (_, _) => EditCard(_selected);
+        miDelete.Click += (_, _) => DeleteCard(_selected);
+        cardMenu.Opening += (_, e) =>
+        {
+            if (_selected is null)
+                e.Cancel = true;
+        };
+
+        // ПКМ по карточке должна выбирать её до открытия меню, иначе правится чужая.
+        Cards.AddHandler(InputElement.PointerPressedEvent, OnCardsPointerPressed, RoutingStrategies.Bubble, handledEventsToo: true);
+
         AutoBox.IsCheckedChanged += (_, _) =>
         {
             if (AutoBox.IsChecked == true)
@@ -229,6 +248,25 @@ public partial class CardsView : UserControl
     {
         _selected = Cards.SelectedItem as CardItem;
         UpdateCommandButtons();
+    }
+
+    /// <summary>ПКМ по карточке выбирает её — меню «Изменить/Удалить» действует на неё.</summary>
+    private void OnCardsPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(Cards).Properties.IsRightButtonPressed)
+            return;
+
+        var item = (e.Source as Visual)?.FindAncestorOfType<ListBoxItem>();
+        if (item?.DataContext is CardItem card)
+        {
+            Cards.SelectedItem = card;
+            SelectCard(card);
+        }
+        else
+        {
+            _selected = null;
+            UpdateCommandButtons();
+        }
     }
 
     private void DeleteCard(CardItem? item)

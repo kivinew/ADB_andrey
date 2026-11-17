@@ -15,6 +15,14 @@ public partial class LogView : UserControl
 
         ClearBtn.Click += (_, _) => LogList.Items.Clear();
         CopyBtn.Click += (_, _) => CopyAll();
+        TopBtn.Click += (_, _) => ScrollToTop();
+        BottomBtn.Click += (_, _) => ScrollToBottom();
+
+        Loaded += (_, _) =>
+        {
+            if (AutoScroll.IsChecked == true)
+                ScrollToBottom();
+        };
     }
 
     public void Attach(AppState ctx)
@@ -28,9 +36,21 @@ public partial class LogView : UserControl
         Dispatcher.UIThread.Post(() =>
         {
             LogList.Items.Add(text);
-            if (LogList.Items.Count > 0)
-                LogList.ScrollIntoView(LogList.Items[LogList.Items.Count - 1]);
+            if (AutoScroll.IsChecked == true)
+                ScrollToBottom();
         });
+    }
+
+    private void ScrollToTop()
+    {
+        if (LogList.Items.Count > 0)
+            LogList.ScrollIntoView(LogList.Items[0]);
+    }
+
+    private void ScrollToBottom()
+    {
+        if (LogList.Items.Count > 0)
+            LogList.ScrollIntoView(LogList.Items[LogList.Items.Count - 1]);
     }
 
     private async void CopyAll()
