@@ -158,7 +158,7 @@ public partial class ConnectionView : UserControl
     private void UpdateConnectButton()
     {
         var network = !string.IsNullOrEmpty(Ctx.Serial) && Ctx.Serial.Contains(':');
-        ConnectBtn.Content = network ? "ОТКЛЮЧИТЬ" : "ПОДКЛЮЧИТЬСЯ";
+        ConnectBtn.Content = network ? "Отключить" : "Подключить";
     }
 
     private async Task ToggleConnectionAsync()
@@ -273,8 +273,13 @@ public partial class ConnectionView : UserControl
             Ctx.Log(answer.Length == 0 ? "Отключено" : answer);
             DevicesChanged?.Invoke();
         }
+        catch (Exception ex)
+        {
+            Ctx.Log($"Не удалось отключиться: {ex.Message}");
+        }
         finally
         {
+            ConnectBtn.IsEnabled = true;
             UpdateConnectButton();
         }
     }

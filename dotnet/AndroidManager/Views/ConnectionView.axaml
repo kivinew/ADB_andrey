@@ -54,7 +54,7 @@
 
           <!-- Кнопки сети: подключение и сопряжение — здесь же, рядом с адресом -->
           <Grid ColumnDefinitions="*,10,Auto">
-            <Button Grid.Column="0" x:Name="ConnectBtn" Content="ПОДКЛЮЧИТЬСЯ"
+            <Button Grid.Column="0" x:Name="ConnectBtn" Content="Подключить"
                     Classes="btn--primary" HorizontalAlignment="Stretch" />
             <Button Grid.Column="2" x:Name="PairBtn" Content="СОПРЯЖЕНИЕ..."
                     Classes="btn--ghost" />
