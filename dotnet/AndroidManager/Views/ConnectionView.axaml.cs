@@ -34,6 +34,11 @@ public partial class ConnectionView : UserControl
 
         HistoryBox.SelectionChanged += (_, _) => PickHistory();
         FavBox.SelectionChanged += (_, _) => PickFavorite();
+
+        // Повторный выбор того же пункта не меняет SelectedItem — SelectionChanged не сработает.
+        // Закрытие списка ловит и такой случай.
+        HistoryBox.DropDownClosed += (_, _) => PickHistory();
+        FavBox.DropDownClosed += (_, _) => PickFavorite();
         DeviceBox.SelectionChanged += (_, _) =>
         {
             if (DeviceBox.SelectedItem is string serial)
