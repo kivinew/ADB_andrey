@@ -49,6 +49,16 @@ public sealed class BarItem
     public string Type { get; set; } = "shell";
 }
 
+/// <summary>Пользовательские команды для встроенных кнопок интерфейса (scrcpy, Vysor, скриншот, перезагрузка, клавиши).</summary>
+public sealed class ButtonCommands
+{
+    public string ScrcpyCmd { get; set; } = "";
+    public string VysorCmd { get; set; } = "";
+    public string ScreenshotCmd { get; set; } = "";
+    public string RebootCmd { get; set; } = "";
+    public string KeyCmd { get; set; } = "";
+}
+
 /// <summary>Настройки приложения. Лежат в settings.json рядом с exe: у C#-версии своя
 /// папка, с настройками Python-версии они не пересекаются.</summary>
 public sealed class AppSettings
@@ -76,6 +86,9 @@ public sealed class AppSettings
         ["scripts"] = new(),
         ["console"] = new(),
     };
+
+    /// <summary>Пользовательские команды для встроенных кнопок (scrcpy, Vysor, скриншот, перезагрузка, клавиши).</summary>
+    public ButtonCommands ButtonCommands { get; set; } = new();
 
     private static readonly JsonSerializerOptions Json = new()
     {
@@ -114,6 +127,8 @@ public sealed class AppSettings
                         ["scripts"] = new(),
                         ["console"] = new(),
                     };
+
+                    loaded.ButtonCommands ??= new ButtonCommands();
 
                     if (loaded.Cards.Count == 0)
                         loaded.Cards = Defaults.DefaultCards();

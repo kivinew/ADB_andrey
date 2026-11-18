@@ -27,3 +27,5 @@ venv/
 *.egg-info/
 .DS_Store
 Thumbs.db
+# бинарные инструменты C#-версии (копируются рядом с exe)
+dotnet/AndroidManager/tools/

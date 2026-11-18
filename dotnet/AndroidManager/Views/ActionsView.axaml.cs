@@ -4,6 +4,7 @@ using AndroidManager.Core.Settings;
 using AndroidManager.Services;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using System;
@@ -54,6 +55,15 @@ public partial class ActionsView : UserControl
         BtnRebootRecovery.Click += (_, _) => Reboot("recovery");
         BtnRebootBootloader.Click += (_, _) => Reboot("bootloader");
         BtnKey.Click += (_, _) => SendKey();
+
+        // ПКМ-меню для редактирования команд кнопок
+        BtnScStart.ContextMenu = CreateButtonEditMenu("BtnScStart", "Запустить scrcpy", "scrcpy --video-codec h264");
+        BtnVysorStart.ContextMenu = CreateButtonEditMenu("BtnVysorStart", "Запустить Vysor", "");
+        BtnScreenshot.ContextMenu = CreateButtonEditMenu("BtnScreenshot", "Скриншот", "screencap -p /sdcard/screen.png && pull /sdcard/screen.png screenshots/screen_{date}.png");
+        BtnReboot.ContextMenu = CreateButtonEditMenu("BtnReboot", "Перезагрузка", "reboot");
+        BtnRebootRecovery.ContextMenu = CreateButtonEditMenu("BtnRebootRecovery", "Recovery", "reboot recovery");
+        BtnRebootBootloader.ContextMenu = CreateButtonEditMenu("BtnRebootBootloader", "Bootloader", "reboot bootloader");
+        BtnKey.ContextMenu = CreateButtonEditMenu("BtnKey", "Отправить клавишу", "input keyevent {code}");
 
         BtnScreenRefresh.Click += (_, _) => _ = RefreshScreenInfoAsync();
         BtnScreenApply.Click += (_, _) => _ = ApplyScreenAsync();
@@ -120,13 +130,32 @@ public partial class ActionsView : UserControl
 
         try
         {
-            Process.Start(new ProcessStartInfo
+            // Если пользователь задал свою команду для Vysor — используем её
+            if (!string.IsNullOrEmpty(Ctx.Settings.ButtonCommands.VysorCmd))
             {
-                FileName = path,
-                UseShellExecute = true,
-                CreateNoWindow = true,
-            });
-            Ctx.Log("Vysor запущен");
+                var customCmd = Ctx.Settings.ButtonCommands.VysorCmd
+                    .Replace("{vysor}", path)
+                    .Replace("{serial}", Ctx.Serial ?? "");
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/c {customCmd}",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                });
+                Ctx.Log($"Vysor (custom) запущен: {customCmd}");
+            }
+            else
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = path,
+                    UseShellExecute = true,
+                    CreateNoWindow = true,
+                });
+                Ctx.Log("Vysor запущен");
+            }
         }
         catch (Exception ex)
         {
@@ -194,32 +223,67 @@ public partial class ActionsView : UserControl
 
         try
         {
-            // Запускаем как GUI-процесс (как в Python-версии): без перехвата вывода.
-            // scrcpy — оконное приложение, оно не завершается до закрытия окна.
-            var psi = new ProcessStartInfo
+            // Если пользователь задал свою команду — используем её, иначе стандартную
+            if (!string.IsNullOrEmpty(Ctx.Settings.ButtonCommands.ScrcpyCmd))
             {
-                FileName = scrcpyPath,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-            };
-            foreach (var a in args) psi.ArgumentList.Add(a);
-            // scrcpy ищет adb через переменную окружения ADB — передаём путь, как в Python-версии.
-            psi.Environment["ADB"] = adbPath;
-            psi.Environment["PATH"] = scrcpyDir + Path.PathSeparator + (psi.Environment["PATH"] ?? "");
+                var customCmd = Ctx.Settings.ButtonCommands.ScrcpyCmd
+                    .Replace("{serial}", serial)
+                    .Replace("{scrcpy}", scrcpyPath)
+                    .Replace("{adb}", adbPath);
 
-            var proc = Process.Start(psi);
-            if (proc is null)
-                throw new InvalidOperationException("scrcpy не запустился");
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/c {customCmd}",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                };
+                psi.Environment["ADB"] = adbPath;
+                psi.Environment["PATH"] = scrcpyDir + Path.PathSeparator + (psi.Environment["PATH"] ?? "");
 
-            // Отслеживаем выход: если scrcpy сразу упал — увидим код и сообщение.
-            proc.EnableRaisingEvents = true;
-            proc.Exited += (_, _) =>
+                using var proc = Process.Start(psi);
+                proc?.WaitForExit(30000);
+                var output = proc?.StandardOutput.ReadToEnd() ?? "";
+                var error = proc?.StandardError.ReadToEnd() ?? "";
+
+                if (!string.IsNullOrEmpty(output.Trim()))
+                    Ctx.Log($"scrcpy (custom): {output.Trim()}");
+                if (!string.IsNullOrEmpty(error.Trim()))
+                    Ctx.Log($"scrcpy (custom) error: {error.Trim()}");
+
+                Ctx.Log("scrcpy (custom) запущен");
+            }
+            else
             {
-                var code = proc.ExitCode;
-                Ctx.Log($"scrcpy завершился (код {code})");
-            };
+                // Запускаем как GUI-процесс (как в Python-версии): без перехвата вывода.
+                // scrcpy — оконное приложение, оно не завершается до закрытия окна.
+                var psi = new ProcessStartInfo
+                {
+                    FileName = scrcpyPath,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                };
+                foreach (var a in args) psi.ArgumentList.Add(a);
+                // scrcpy ищет adb через переменную окружения ADB — передаём путь, как в Python-версии.
+                psi.Environment["ADB"] = adbPath;
+                psi.Environment["PATH"] = scrcpyDir + Path.PathSeparator + (psi.Environment["PATH"] ?? "");
 
-            Ctx.Log($"scrcpy запущен (PID {proc.Id})");
+                var proc = Process.Start(psi);
+                if (proc is null)
+                    throw new InvalidOperationException("scrcpy не запустился");
+
+                // Отслеживаем выход: если scrcpy сразу упал — увидим код и сообщение.
+                proc.EnableRaisingEvents = true;
+                proc.Exited += (_, _) =>
+                {
+                    var code = proc.ExitCode;
+                    Ctx.Log($"scrcpy завершился (код {code})");
+                };
+
+                Ctx.Log($"scrcpy запущен (PID {proc.Id})");
+            }
         }
         catch (Exception ex)
         {
@@ -251,11 +315,12 @@ public partial class ActionsView : UserControl
 
     private string? FindScrcpyPath()
     {
+        // 1) Рядом с программой: tools/scrcpy/scrcpy.exe (туда копирует установщик)
         var local = System.IO.Path.Combine(Paths.Base, "tools", ScrcpyExeName, ScrcpyExeName + ".exe");
         if (File.Exists(local))
             return local;
 
-        // Ищем в PATH, как Python shutil.which
+        // 2) Ищем в PATH, как Python shutil.which — на случай, если scrcpy установлен глобально
         var pathEnv = Environment.GetEnvironmentVariable("PATH");
         if (pathEnv != null)
         {
@@ -286,20 +351,50 @@ public partial class ActionsView : UserControl
 
         try
         {
-            // Сначала делаем screencap на устройство, потом подтягиваем pull
-            var client = new AdbClient(Ctx.AdbPath, serial, 30);
-            var (rc1, _, err1) = client.Shell($"screencap -p /sdcard/screen_tmp.png", 30);
-            if (rc1 != 0)
+            // Если пользователь задал свою команду — используем её
+            if (!string.IsNullOrEmpty(Ctx.Settings.ButtonCommands.ScreenshotCmd))
             {
-                Ctx.Log($"Ошибка screencap: {err1.Trim()}");
-                return;
-            }
+                var customCmd = Ctx.Settings.ButtonCommands.ScreenshotCmd
+                    .Replace("{serial}", serial)
+                    .Replace("{path}", path)
+                    .Replace("{dir}", dir)
+                    .Replace("{date}", DateTime.Now.ToString("yyyyMMdd_HHmmss"));
 
-            var (rc2, _, err2) = client.Run("pull", "/sdcard/screen_tmp.png", path);
-            if (rc2 == 0)
-                Ctx.Log($"Скриншот: {path}");
+                var client = new AdbClient(Ctx.AdbPath, serial, 30);
+                var (rc, output, err) = client.Shell(customCmd, 30);
+
+                if (rc == 0 && !string.IsNullOrEmpty(output.Trim()))
+                    Ctx.Log($"Скриншот (custom): {output.Trim()}");
+                else if (rc != 0)
+                    Ctx.Log($"Ошибка скриншота (custom): {err.Trim()}");
+
+                // Пытаемся скопировать результат, если указан путь
+                if (customCmd.Contains("screencap") && !customCmd.Contains("screenshots/"))
+                {
+                    var (rc2, _, err2) = client.Run("pull", "/sdcard/screen_tmp.png", path);
+                    if (rc2 == 0)
+                        Ctx.Log($"Скриншот: {path}");
+                    else if (rc2 != 0 && !string.IsNullOrEmpty(err2.Trim()))
+                        Ctx.Log($"Ошибка pull: {err2.Trim()}");
+                }
+            }
             else
-                Ctx.Log($"Ошибка pull: {err2.Trim()}");
+            {
+                // Сначала делаем screencap на устройство, потом подтягиваем pull
+                var client = new AdbClient(Ctx.AdbPath, serial, 30);
+                var (rc1, _, err1) = client.Shell($"screencap -p /sdcard/screen_tmp.png", 30);
+                if (rc1 != 0)
+                {
+                    Ctx.Log($"Ошибка screencap: {err1.Trim()}");
+                    return;
+                }
+
+                var (rc2, _, err2) = client.Run("pull", "/sdcard/screen_tmp.png", path);
+                if (rc2 == 0)
+                    Ctx.Log($"Скриншот: {path}");
+                else
+                    Ctx.Log($"Ошибка pull: {err2.Trim()}");
+            }
         }
         catch (Exception ex)
         {
@@ -317,13 +412,27 @@ public partial class ActionsView : UserControl
         }
 
         var cmd = string.IsNullOrEmpty(mode) ? "reboot" : $"reboot {mode}";
+
         try
         {
-            var (rc, _, err) = await Task.Run(() => new AdbClient(Ctx.AdbPath, serial, 30).Shell(cmd, 30));
-            if (rc == 0)
-                Ctx.Log($"Команда отправлена: {cmd}");
+            // Если пользователь задал свою команду для перезагрузки — используем её
+            if (!string.IsNullOrEmpty(Ctx.Settings.ButtonCommands.RebootCmd) && string.IsNullOrEmpty(mode))
+            {
+                var customCmd = Ctx.Settings.ButtonCommands.RebootCmd.Replace("{serial}", serial);
+                var (rc, _, err) = await Task.Run(() => new AdbClient(Ctx.AdbPath, serial, 30).Shell(customCmd, 30));
+                if (rc == 0)
+                    Ctx.Log($"Команда отправлена (custom): {customCmd}");
+                else
+                    Ctx.Log($"Ошибка {customCmd}: {err.Trim()}");
+            }
             else
-                Ctx.Log($"Ошибка {cmd}: {err.Trim()}");
+            {
+                var (rc, _, err) = await Task.Run(() => new AdbClient(Ctx.AdbPath, serial, 30).Shell(cmd, 30));
+                if (rc == 0)
+                    Ctx.Log($"Команда отправлена: {cmd}");
+                else
+                    Ctx.Log($"Ошибка {cmd}: {err.Trim()}");
+            }
         }
         catch (Exception ex)
         {
@@ -344,15 +453,149 @@ public partial class ActionsView : UserControl
 
         _ = Task.Run(() =>
         {
-            var (rc, _, err) = new AdbClient(Ctx.AdbPath, serial, 15).Shell($"input keyevent {ki.Code}", 15);
-            Dispatcher.UIThread.Post(() =>
+            // Если пользователь задал свою команду для клавиш — используем её
+            if (!string.IsNullOrEmpty(Ctx.Settings.ButtonCommands.KeyCmd))
             {
-                if (rc == 0)
-                    Ctx.Log($"Клавиша отправлена: {ki.Name}");
-                else
-                    Ctx.Log($"Ошибка клавиши: {err.Trim()}");
-            });
+                var customCmd = Ctx.Settings.ButtonCommands.KeyCmd
+                    .Replace("{serial}", serial)
+                    .Replace("{code}", ki.Code.ToString());
+
+                var (rc, _, err) = new AdbClient(Ctx.AdbPath, serial, 15).Shell(customCmd, 15);
+                Dispatcher.UIThread.Post(() =>
+                {
+                    if (rc == 0)
+                        Ctx.Log($"Клавиша отправлена (custom): {ki.Name}");
+                    else
+                        Ctx.Log($"Ошибка клавиши (custom): {err.Trim()}");
+                });
+            }
+            else
+            {
+                var (rc, _, err) = new AdbClient(Ctx.AdbPath, serial, 15).Shell($"input keyevent {ki.Code}", 15);
+                Dispatcher.UIThread.Post(() =>
+                {
+                    if (rc == 0)
+                        Ctx.Log($"Клавиша отправлена: {ki.Name}");
+                    else
+                        Ctx.Log($"Ошибка клавиши: {err.Trim()}");
+                });
+            }
         });
+    }
+
+    /// <summary>Создаёт контекстное меню (ПКМ) для кнопок интерфейса: Редактировать / Удалить.</summary>
+    private ContextMenu CreateButtonEditMenu(string buttonId, string displayName, string defaultCmd)
+    {
+        var menu = new ContextMenu();
+        var editItem = new MenuItem { Header = "Редактировать" };
+        var deleteItem = new MenuItem { Header = "Удалить" };
+
+        editItem.Click += (_, _) => EditButtonCommand(buttonId, displayName, defaultCmd);
+        deleteItem.Click += (_, _) => DeleteButton(buttonId);
+
+        menu.Items.Add(editItem);
+        menu.Items.Add(deleteItem);
+        return menu;
+    }
+
+    private void EditButtonCommand(string buttonId, string displayName, string defaultCmd)
+    {
+        var currentCmd = GetButtonCommand(buttonId, defaultCmd);
+
+        var win = new Window
+        {
+            Title = $"Редактировать кнопку: {displayName}",
+            Width = 500,
+            Height = 300,
+            CanResize = false,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+        };
+
+        var cmdBox = new TextBox
+        {
+            Text = currentCmd,
+            Margin = new Thickness(24, 8, 24, 8),
+            Height = 80,
+            TextWrapping = TextWrapping.Wrap,
+            AcceptsReturn = true,
+        };
+
+        var hint = new TextBlock
+        {
+            Text = "shell — команда на устройстве (adb shell ...)\npc — команда на ПК\nДоступно: {serial}, {ip}, {port}",
+            FontSize = 10,
+            Foreground = new SolidColorBrush(Color.Parse("#7B84A0")),
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(24, 0, 24, 8),
+        };
+
+        var saveBtn = new Button { Content = "Сохранить", MinWidth = 100 };
+        var cancelBtn = new Button { Content = "Отмена", MinWidth = 100 };
+
+        var btnBar = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 8,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Margin = new Thickness(24, 0, 24, 16),
+        };
+        btnBar.Children.Add(cancelBtn);
+        btnBar.Children.Add(saveBtn);
+
+        var root = new StackPanel { Spacing = 6, Margin = new Thickness(24) };
+        root.Children.Add(new TextBlock { Text = "Команда" });
+        root.Children.Add(cmdBox);
+        root.Children.Add(hint);
+        root.Children.Add(btnBar);
+        win.Content = root;
+
+        saveBtn.Click += (_, _) =>
+        {
+            var newCmd = cmdBox.Text?.Trim() ?? "";
+            SaveButtonCommand(buttonId, newCmd);
+            win.Close();
+            Ctx.Log($"Команда кнопки «{displayName}» изменена");
+        };
+
+        cancelBtn.Click += (_, _) => win.Close();
+
+        if (TopLevel.GetTopLevel(this) is Window owner)
+            win.ShowDialog(owner);
+        else
+            win.Show();
+    }
+
+    private string GetButtonCommand(string buttonId, string defaultCmd)
+    {
+        return buttonId switch
+        {
+            "BtnScStart" => Ctx.Settings.ButtonCommands.ScrcpyCmd ?? defaultCmd,
+            "BtnVysorStart" => Ctx.Settings.ButtonCommands.VysorCmd ?? defaultCmd,
+            "BtnScreenshot" => Ctx.Settings.ButtonCommands.ScreenshotCmd ?? defaultCmd,
+            "BtnReboot" => Ctx.Settings.ButtonCommands.RebootCmd ?? defaultCmd,
+            "BtnKey" => Ctx.Settings.ButtonCommands.KeyCmd ?? defaultCmd,
+            _ => defaultCmd,
+        };
+    }
+
+    private void SaveButtonCommand(string buttonId, string cmd)
+    {
+        switch (buttonId)
+        {
+            case "BtnScStart": Ctx.Settings.ButtonCommands.ScrcpyCmd = cmd; break;
+            case "BtnVysorStart": Ctx.Settings.ButtonCommands.VysorCmd = cmd; break;
+            case "BtnScreenshot": Ctx.Settings.ButtonCommands.ScreenshotCmd = cmd; break;
+            case "BtnReboot": Ctx.Settings.ButtonCommands.RebootCmd = cmd; break;
+            case "BtnKey": Ctx.Settings.ButtonCommands.KeyCmd = cmd; break;
+        }
+        Ctx.SaveSettings();
+    }
+
+    private void DeleteButton(string buttonId)
+    {
+        // Сброс к дефолтной команде
+        SaveButtonCommand(buttonId, "");
+        Ctx.Log("Команда кнопки сброшена к дефолтной");
     }
 
     /// <summary>Смена устройства: сбрасываем показания экрана и перечитываем.</summary>
