@@ -66,7 +66,35 @@
           <Grid RowDefinitions="*,Auto">
             <StackPanel Grid.Row="0" Spacing="10" VerticalAlignment="Top" Margin="0,8,0,0">
               <Button x:Name="BtnHome" Classes="nav-btn is-active" ToolTip.Tip="Подключение">
-                <TextBlock Text="📱" FontSize="16" Foreground="#B89EFF" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                <Button.Content>
+                  <Viewbox Width="22" Height="16" Stretch="Uniform">
+                    <Path Width="16" Height="14" Fill="#B89EFF">
+                      <Path.Data>
+                        <PathGeometry>
+                          <PathFigure StartPoint="2,2" IsClosed="True">
+                            <LineSegment Point="14,2" />
+                            <LineSegment Point="14,11" />
+                            <LineSegment Point="2,11" />
+                          </PathFigure>
+                          <PathFigure StartPoint="7,0" IsClosed="False">
+                            <LineSegment Point="7,-3" />
+                            <LineSegment Point="9,-3" />
+                          </PathFigure>
+                          <PathFigure StartPoint="6,11" IsClosed="True">
+                            <LineSegment Point="6,14" />
+                            <LineSegment Point="10,14" />
+                            <LineSegment Point="8,11" />
+                          </PathFigure>
+                          <PathFigure StartPoint="5,6" IsClosed="True">
+                            <LineSegment Point="5,9" />
+                            <LineSegment Point="7,9" />
+                            <LineSegment Point="7,6" />
+                          </PathFigure>
+                        </PathGeometry>
+                      </Path.Data>
+                    </Path>
+                  </Viewbox>
+                </Button.Content>
               </Button>
               <Button x:Name="BtnCards" Classes="nav-btn" ToolTip.Tip="Виджеты">
                 <TextBlock Text="▭" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
@@ -78,7 +106,36 @@
                 <TextBlock Text="⌘" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
               </Button>
               <Button x:Name="BtnConsole" Classes="nav-btn" ToolTip.Tip="Консоль">
-                <TextBlock Text="▱" FontSize="14" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                <Button.Content>
+                  <Viewbox Width="20" Height="14" Stretch="Uniform">
+                    <Path Width="14" Height="10" Fill="#7B84A0">
+                      <Path.Data>
+                        <PathGeometry FillRule="EvenOdd">
+                          <PathFigure StartPoint="0,0" IsClosed="True">
+                            <LineSegment Point="14,0" />
+                            <LineSegment Point="14,10" />
+                            <LineSegment Point="0,10" />
+                          </PathFigure>
+                          <PathFigure StartPoint="1,1" IsClosed="True">
+                            <LineSegment Point="1,8" />
+                            <LineSegment Point="13,8" />
+                            <LineSegment Point="13,1" />
+                          </PathFigure>
+                          <PathFigure StartPoint="2,2" IsClosed="True">
+                            <LineSegment Point="4,2" />
+                            <LineSegment Point="4,4" />
+                            <LineSegment Point="2,4" />
+                          </PathFigure>
+                          <PathFigure StartPoint="5,7" IsClosed="True">
+                            <LineSegment Point="10,7" />
+                            <LineSegment Point="10,9" />
+                            <LineSegment Point="5,9" />
+                          </PathFigure>
+                        </PathGeometry>
+                      </Path.Data>
+                    </Path>
+                  </Viewbox>
+                </Button.Content>
               </Button>
               <Button x:Name="BtnLogs" Classes="nav-btn" ToolTip.Tip="Логи">
                 <TextBlock Text="▤" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
