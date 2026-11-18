@@ -14,6 +14,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AvaloniaResource Include="Icons\apps.png" />
+    <AvaloniaResource Include="Icons\connect.png" />
+    <AvaloniaResource Include="Icons\process.png" />
+    <AvaloniaResource Include="Icons\action.png" />
+    <AvaloniaResource Include="Icons\logs.png" />
+    <AvaloniaResource Include="Icons\widgets.png" />
     <PackageReference Include="Avalonia" Version="11.*" />
     <PackageReference Include="Avalonia.Desktop" Version="11.*" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.*" />
