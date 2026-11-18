@@ -45,9 +45,9 @@ public static class CustomBars
     }
 
     // Последний отрисованный хост каждой панели: по нему ловим бросок и перерисовываем.
-    private static readonly Dictionary<string, (Panel Host, Action Repaint)> _bars = new();
+    private static readonly Dictionary<string, (Panel Host, Action Repaint, AppState Ctx)> _bars = new();
+    private static readonly HashSet<Panel> _wired = new();
     private static DragState? _drag;
-    private static bool _suppressClick;
     private const double DragThreshold = 6;
 
     /// <summary>Список кнопок панели, создаётся при необходимости.</summary>
@@ -75,7 +75,9 @@ public static class CustomBars
                 onChanged();
             else
                 Render(ctx, panel, host, top, null, onRun, showAdd);
-        });
+        }, ctx);
+
+        WireHost(host);
 
         for (var idx = 0; idx < items.Count; idx++)
         {
@@ -90,64 +92,11 @@ public static class CustomBars
             ToolTip.SetTip(btn, $"{item.Type}: {item.Cmd}\nПеретащите кнопку, чтобы переставить её");
             btn.Click += (_, _) =>
             {
-                if (TakeSuppressedClick())
-                    return;
-
                 if (onRun is not null)
                     onRun(item);
                 else
                     Run(ctx, item, top);
             };
-
-            // Перетаскивание: бросок на другую кнопку — встать перед/после неё,
-            // бросок на пустое место панели — в конец (в т.ч. в соседний ряд).
-            // Button сам гасит PointerPressed, поэтому слушаем с handledEventsToo.
-            btn.AddHandler(InputElement.PointerPressedEvent, (_, e) =>
-            {
-                if (!e.GetCurrentPoint(btn).Properties.IsLeftButtonPressed)
-                    return;
-
-                _suppressClick = false;
-                _drag = new DragState { Panel = panel, Index = i, Start = e.GetPosition(host), Source = btn };
-                e.Pointer.Capture(btn);
-            }, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, handledEventsToo: true);
-
-            btn.AddHandler(InputElement.PointerMovedEvent, (_, e) =>
-            {
-                if (_drag is null || _drag.Source != btn || _drag.Moved)
-                    return;
-                if (!e.GetCurrentPoint(btn).Properties.IsLeftButtonPressed)
-                    return;
-                if (DragDistance(e.GetPosition(host), _drag.Start) < DragThreshold)
-                    return;
-
-                _drag.Moved = true;
-                btn.Opacity = 0.55;
-            }, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, handledEventsToo: true);
-
-            btn.AddHandler(InputElement.PointerReleasedEvent, (_, e) =>
-            {
-                if (_drag is null || _drag.Source != btn)
-                    return;
-
-                var drag = _drag;
-                _drag = null;
-                e.Pointer.Capture(null);
-                btn.Opacity = 1;
-
-                if (!drag.Moved)
-                    return;
-
-                _suppressClick = true;
-
-                var windowPoint = e.GetPosition(top);
-                var hit = top is not null ? top.InputHitTest(windowPoint) : null;
-
-                if (FindDropTarget(hit, e, out var toPanel, out var toIndex))
-                    MoveTo(ctx, drag.Panel, drag.Index, toPanel, toIndex);
-                else if (top is not null && TryDropOnHostArea(top, windowPoint, out var areaPanel))
-                    MoveTo(ctx, drag.Panel, drag.Index, areaPanel, -1);
-            }, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, handledEventsToo: true);
 
             var menu = new ContextMenu();
             menu.Items.Add(new MenuItem { Header = "Изменить", Tag = i });
@@ -192,13 +141,102 @@ public static class CustomBars
         host.Children.Add(add);
     }
 
-    private static bool TakeSuppressedClick()
+    /// <summary>
+    /// Перетаскивание живёт на самой панели, а не на кнопке: нажатие не трогаем вовсе,
+    /// иначе клик по кнопке перестаёт срабатывать. Указатель захватывается только
+    /// после сдвига дальше порога — тогда кнопка отпускание уже не получает.
+    /// </summary>
+    private static void WireHost(Panel host)
     {
-        if (!_suppressClick)
-            return false;
+        if (!_wired.Add(host))
+            return;
 
-        _suppressClick = false;
-        return true;
+        host.AddHandler(InputElement.PointerPressedEvent, HostPressed, RoutingStrategies.Tunnel);
+        host.AddHandler(InputElement.PointerMovedEvent, HostMoved, RoutingStrategies.Tunnel, handledEventsToo: true);
+        host.AddHandler(InputElement.PointerReleasedEvent, HostReleased, RoutingStrategies.Tunnel, handledEventsToo: true);
+    }
+
+    private static (AppState Ctx, string Panel)? FindEntry(Panel host)
+    {
+        foreach (var (key, bar) in _bars)
+        {
+            if (ReferenceEquals(bar.Host, host))
+                return (bar.Ctx, key);
+        }
+
+        return null;
+    }
+
+    private static void HostPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is not Panel host || _drag is not null)
+            return;
+
+        if (!e.GetCurrentPoint(host).Properties.IsLeftButtonPressed)
+            return;
+
+        var entry = FindEntry(host);
+        if (entry is null)
+            return;
+
+        var btn = (e.Source as Visual)?.GetSelfAndVisualAncestors().OfType<Button>()
+            .FirstOrDefault(b => b.Parent == host);
+        if (btn is null)
+            return;
+
+        var index = host.Children.IndexOf(btn);
+        if (index < 0 || index >= Items(entry.Value.Ctx, entry.Value.Panel).Count)
+            return;
+
+        _drag = new DragState { Panel = entry.Value.Panel, Index = index, Start = e.GetPosition(host), Source = btn };
+    }
+
+    private static void HostMoved(object? sender, PointerEventArgs e)
+    {
+        if (_drag is null || _drag.Moved || sender is not Panel host)
+            return;
+
+        if (!e.GetCurrentPoint(host).Properties.IsLeftButtonPressed)
+            return;
+
+        if (DragDistance(e.GetPosition(host), _drag.Start) < DragThreshold)
+            return;
+
+        _drag.Moved = true;
+        if (_drag.Source is not null)
+            _drag.Source.Opacity = 0.55;
+
+        e.Pointer.Capture(host);
+    }
+
+    private static void HostReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (_drag is null || sender is not Panel host)
+            return;
+
+        var drag = _drag;
+        _drag = null;
+
+        if (!drag.Moved)
+            return;
+
+        if (drag.Source is not null)
+            drag.Source.Opacity = 1;
+
+        e.Pointer.Capture(null);
+
+        var entry = FindEntry(host);
+        var top = TopLevel.GetTopLevel(host);
+        if (entry is null || top is null)
+            return;
+
+        var windowPoint = e.GetPosition(top);
+        var hit = top.InputHitTest(windowPoint);
+
+        if (FindDropTarget(hit, e, out var toPanel, out var toIndex))
+            MoveTo(entry.Value.Ctx, drag.Panel, drag.Index, toPanel, toIndex);
+        else if (TryDropOnHostArea(top, windowPoint, out var areaPanel))
+            MoveTo(entry.Value.Ctx, drag.Panel, drag.Index, areaPanel, -1);
     }
 
     private static double DragDistance(Point a, Point b) => Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y);
