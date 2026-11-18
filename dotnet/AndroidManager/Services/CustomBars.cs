@@ -3,10 +3,12 @@ using AndroidManager.Core.Settings;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -33,6 +35,21 @@ public static class CustomBars
         [PanelConsoleQuick] = "Быстрые команды консоли",
     };
 
+    private sealed class DragState
+    {
+        public string Panel = "";
+        public int Index;
+        public Point Start;
+        public bool Moved;
+        public Button? Source;
+    }
+
+    // Последний отрисованный хост каждой панели: по нему ловим бросок и перерисовываем.
+    private static readonly Dictionary<string, (Panel Host, Action Repaint)> _bars = new();
+    private static DragState? _drag;
+    private static bool _suppressClick;
+    private const double DragThreshold = 6;
+
     /// <summary>Список кнопок панели, создаётся при необходимости.</summary>
     public static List<BarItem> Items(AppState ctx, string panel)
     {
@@ -52,6 +69,14 @@ public static class CustomBars
         host.Children.Clear();
         var items = Items(ctx, panel);
 
+        _bars[panel] = (host, () =>
+        {
+            if (onChanged is not null)
+                onChanged();
+            else
+                Render(ctx, panel, host, top, null, onRun, showAdd);
+        });
+
         for (var idx = 0; idx < items.Count; idx++)
         {
             var item = items[idx];
@@ -62,14 +87,67 @@ public static class CustomBars
                 Content = item.Name,
                 Margin = new Thickness(0, 0, 6, 6),
             };
-            ToolTip.SetTip(btn, $"{item.Type}: {item.Cmd}");
+            ToolTip.SetTip(btn, $"{item.Type}: {item.Cmd}\nПеретащите кнопку, чтобы переставить её");
             btn.Click += (_, _) =>
             {
+                if (TakeSuppressedClick())
+                    return;
+
                 if (onRun is not null)
                     onRun(item);
                 else
                     Run(ctx, item, top);
             };
+
+            // Перетаскивание: бросок на другую кнопку — встать перед/после неё,
+            // бросок на пустое место панели — в конец (в т.ч. в соседний ряд).
+            // Button сам гасит PointerPressed, поэтому слушаем с handledEventsToo.
+            btn.AddHandler(InputElement.PointerPressedEvent, (_, e) =>
+            {
+                if (!e.GetCurrentPoint(btn).Properties.IsLeftButtonPressed)
+                    return;
+
+                _suppressClick = false;
+                _drag = new DragState { Panel = panel, Index = i, Start = e.GetPosition(host), Source = btn };
+                e.Pointer.Capture(btn);
+            }, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, handledEventsToo: true);
+
+            btn.AddHandler(InputElement.PointerMovedEvent, (_, e) =>
+            {
+                if (_drag is null || _drag.Source != btn || _drag.Moved)
+                    return;
+                if (!e.GetCurrentPoint(btn).Properties.IsLeftButtonPressed)
+                    return;
+                if (DragDistance(e.GetPosition(host), _drag.Start) < DragThreshold)
+                    return;
+
+                _drag.Moved = true;
+                btn.Opacity = 0.55;
+            }, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, handledEventsToo: true);
+
+            btn.AddHandler(InputElement.PointerReleasedEvent, (_, e) =>
+            {
+                if (_drag is null || _drag.Source != btn)
+                    return;
+
+                var drag = _drag;
+                _drag = null;
+                e.Pointer.Capture(null);
+                btn.Opacity = 1;
+
+                if (!drag.Moved)
+                    return;
+
+                _suppressClick = true;
+
+                var windowPoint = e.GetPosition(top);
+                var hit = top is not null ? top.InputHitTest(windowPoint) : null;
+
+                if (FindDropTarget(hit, e, out var toPanel, out var toIndex))
+                    MoveTo(ctx, drag.Panel, drag.Index, toPanel, toIndex);
+                else if (top is not null && TryDropOnHostArea(top, windowPoint, out var areaPanel))
+                    MoveTo(ctx, drag.Panel, drag.Index, areaPanel, -1);
+            }, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, handledEventsToo: true);
 
             var menu = new ContextMenu();
             menu.Items.Add(new MenuItem { Header = "Изменить", Tag = i });
@@ -112,6 +190,114 @@ public static class CustomBars
         ToolTip.SetTip(add, $"Создать свою кнопку на панели «{PanelTitles.GetValueOrDefault(panel, panel)}»");
         add.Click += (_, _) => Edit(ctx, panel, null, top as Window, onChanged);
         host.Children.Add(add);
+    }
+
+    private static bool TakeSuppressedClick()
+    {
+        if (!_suppressClick)
+            return false;
+
+        _suppressClick = false;
+        return true;
+    }
+
+    private static double DragDistance(Point a, Point b) => Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y);
+
+    /// <summary>Ищет панель под указателем и позицию вставки (-1 — в конец).</summary>
+    private static bool FindDropTarget(IInputElement? hit, PointerReleasedEventArgs e, out string panel, out int index)
+    {
+        panel = "";
+        index = -1;
+
+        if (hit is not Visual v)
+            return false;
+
+        foreach (var anc in v.GetSelfAndVisualAncestors())
+        {
+            if (anc is not Panel p)
+                continue;
+
+            foreach (var (key, bar) in _bars)
+            {
+                if (!ReferenceEquals(bar.Host, p))
+                    continue;
+
+                panel = key;
+
+                var target = v.GetSelfAndVisualAncestors().OfType<Button>().FirstOrDefault(b => b.Parent == p);
+                if (target is null)
+                    return true;
+
+                // Правее середины кнопки — встать после неё.
+                var bounds = target.Bounds;
+                var pt = e.GetPosition(p);
+                index = p.Children.IndexOf(target) + (pt.X > bounds.X + bounds.Width / 2 ? 1 : 0);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>Точка внутри области панели (пустое место ряда) — бросок в конец.</summary>
+    private static bool TryDropOnHostArea(TopLevel top, Point windowPoint, out string panel)
+    {
+        panel = "";
+
+        foreach (var (key, bar) in _bars)
+        {
+            if (top.TranslatePoint(windowPoint, bar.Host) is not { } p)
+                continue;
+
+            if (p.X < 0 || p.Y < 0 || p.X > bar.Host.Bounds.Width || p.Y > bar.Host.Bounds.Height)
+                continue;
+
+            panel = key;
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>Переносит кнопку между панелями (или внутри одной) и сохраняет настройки.</summary>
+    private static void MoveTo(AppState ctx, string fromPanel, int fromIndex, string toPanel, int toIndex)
+    {
+        var from = Items(ctx, fromPanel);
+        if (fromIndex < 0 || fromIndex >= from.Count)
+            return;
+
+        var to = Items(ctx, toPanel);
+        var item = from[fromIndex];
+
+        if (toIndex < 0)
+            toIndex = to.Count;
+
+        if (fromPanel == toPanel)
+        {
+            if (toIndex > fromIndex)
+                toIndex--;
+            toIndex = Math.Clamp(toIndex, 0, to.Count - 1);
+            if (toIndex == fromIndex)
+                return;
+        }
+        else
+        {
+            toIndex = Math.Clamp(toIndex, 0, to.Count);
+        }
+
+        from.RemoveAt(fromIndex);
+        to.Insert(toIndex, item);
+        ctx.SaveSettings();
+
+        RepaintBar(fromPanel);
+        if (toPanel != fromPanel)
+            RepaintBar(toPanel);
+    }
+
+    private static void RepaintBar(string panel)
+    {
+        if (_bars.TryGetValue(panel, out var bar))
+            bar.Repaint();
     }
 
     /// <summary>Окно создания и правки кнопки.</summary>
