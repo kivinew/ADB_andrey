@@ -16,6 +16,13 @@
       <!-- Кастомные кнопки этой вкладки: «+ Кнопка» создаёт, ПКМ — изменить/удалить -->
       <WrapPanel x:Name="CustomBar" Orientation="Horizontal" />
 
+      <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+        <Button x:Name="TopBtn" Classes="btn--ghost" Content="⤒ В начало" ToolTip.Tip="Прокрутить к первой строке" />
+        <Button x:Name="BottomBtn" Classes="btn--ghost" Content="⤓ В конец" ToolTip.Tip="Прокрутить к последней строке" />
+        <CheckBox x:Name="AutoScroll" Content="Автопрокрутка" IsChecked="True" VerticalAlignment="Center"
+                  ToolTip.Tip="Держать вывод у последней строки при потоке" />
+      </StackPanel>
+
       <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="6">
         <TextBlock Grid.Column="0" Text="$" VerticalAlignment="Center" FontFamily="Consolas" />
         <TextBox Grid.Column="1" x:Name="CmdBox" FontFamily="Consolas" />

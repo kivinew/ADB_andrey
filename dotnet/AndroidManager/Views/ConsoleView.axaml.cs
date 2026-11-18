@@ -34,6 +34,8 @@ public partial class ConsoleView : UserControl
         RunBtn.Click += (_, _) => Run();
         StopBtn.Click += (_, _) => StopStream();
         ClearBtn.Click += (_, _) => Clear();
+        TopBtn.Click += (_, _) => ScrollToTop();
+        BottomBtn.Click += (_, _) => ScrollToBottom();
         CmdBox.KeyDown += OnKeyDown;
 
         // Быстрые команды: кнопка просто подставляет команду в поле и выполняет её.
@@ -251,6 +253,29 @@ public partial class ConsoleView : UserControl
         // а не ScrollIntoView: тот реализует все элементы от 0 до конца.
         Output.ItemsSource = null;
         Output.ItemsSource = _lines;
+
+        _scroll ??= Output.FindDescendantOfType<ScrollViewer>();
+        if (_scroll is null || AutoScroll.IsChecked == false)
+            return;
+
+        var max = _scroll.Extent.Height - _scroll.Viewport.Height;
+        if (max > 0)
+            _scroll.Offset = new Vector(0, max);
+    }
+
+    /// <summary>К первой строке. Автопрокрутка гасится: иначе поток вернёт вниз.</summary>
+    private void ScrollToTop()
+    {
+        AutoScroll.IsChecked = false;
+
+        _scroll ??= Output.FindDescendantOfType<ScrollViewer>();
+        if (_scroll is not null)
+            _scroll.Offset = new Vector(0, 0);
+    }
+
+    private void ScrollToBottom()
+    {
+        AutoScroll.IsChecked = true;
 
         _scroll ??= Output.FindDescendantOfType<ScrollViewer>();
         if (_scroll is null)
