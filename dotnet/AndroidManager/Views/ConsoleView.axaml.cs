@@ -24,6 +24,7 @@ public partial class ConsoleView : UserControl
     private ScrollViewer? _scroll;
     private AdbStream? _stream;
     private int _historyPos;
+    private bool _scrollPending;
 
     public AppState Ctx { get; set; } = null!;
 
@@ -35,7 +36,7 @@ public partial class ConsoleView : UserControl
         StopBtn.Click += (_, _) => StopStream();
         ClearBtn.Click += (_, _) => Clear();
         TopBtn.Click += (_, _) => ScrollToTop();
-        BottomBtn.Click += (_, _) => ScrollToBottom();
+        BottomBtn.Click += (_, _) => { AutoScroll.IsChecked = true; ScrollToBottom(); };
         CmdBox.KeyDown += OnKeyDown;
 
         // Быстрые команды: кнопка просто подставляет команду в поле и выполняет её.
@@ -254,13 +255,27 @@ public partial class ConsoleView : UserControl
         Output.ItemsSource = null;
         Output.ItemsSource = _lines;
 
-        _scroll ??= Output.FindDescendantOfType<ScrollViewer>();
-        if (_scroll is null || AutoScroll.IsChecked == false)
+        if (AutoScroll.IsChecked == false)
             return;
 
-        var max = _scroll.Extent.Height - _scroll.Viewport.Height;
-        if (max > 0)
-            _scroll.Offset = new Vector(0, max);
+        // Экстент обновляется на проходе компоновки: прокрутка сразу после смены
+        // ItemsSource считает смещение по прошлому содержимому и не доезжает до низа.
+        QueueScrollToBottom();
+    }
+
+    private void QueueScrollToBottom()
+    {
+        if (_scrollPending)
+            return;
+
+        _scrollPending = true;
+        Dispatcher.UIThread.Post(() =>
+        {
+            _scrollPending = false;
+
+            if (AutoScroll.IsChecked != false)
+                ScrollToBottom();
+        }, DispatcherPriority.Background);
     }
 
     /// <summary>К первой строке. Автопрокрутка гасится: иначе поток вернёт вниз.</summary>
@@ -275,8 +290,6 @@ public partial class ConsoleView : UserControl
 
     private void ScrollToBottom()
     {
-        AutoScroll.IsChecked = true;
-
         _scroll ??= Output.FindDescendantOfType<ScrollViewer>();
         if (_scroll is null)
             return;
