@@ -85,6 +85,7 @@ public sealed class AppSettings
         ["apps"] = new(),
         ["scripts"] = new(),
         ["console"] = new(),
+        ["console_quick"] = Defaults.ConsoleQuickButtons(),
     };
 
     /// <summary>Пользовательские команды для встроенных кнопок (scrcpy, Vysor, скриншот, перезагрузка, клавиши).</summary>
@@ -127,6 +128,10 @@ public sealed class AppSettings
                         ["scripts"] = new(),
                         ["console"] = new(),
                     };
+
+                    // Быстрые команды консоли: в старых файлах ключа нет — засеваем умолчаниями.
+                    if (!loaded.Bars.ContainsKey("console_quick"))
+                        loaded.Bars["console_quick"] = Defaults.ConsoleQuickButtons();
 
                     loaded.ButtonCommands ??= new ButtonCommands();
 

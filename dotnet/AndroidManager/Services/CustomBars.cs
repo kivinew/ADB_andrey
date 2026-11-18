@@ -23,12 +23,14 @@ public static class CustomBars
     public const string PanelTools = "tools";
     public const string PanelApps = "apps";
     public const string PanelConsole = "console";
+    public const string PanelConsoleQuick = "console_quick";
 
     public static readonly Dictionary<string, string> PanelTitles = new()
     {
         [PanelTools] = "Действия",
         [PanelApps] = "Приложения",
         [PanelConsole] = "Консоль",
+        [PanelConsoleQuick] = "Быстрые команды консоли",
     };
 
     /// <summary>Список кнопок панели, создаётся при необходимости.</summary>
@@ -42,9 +44,10 @@ public static class CustomBars
 
     /// <summary>
     /// Кнопки панели плюс «+ Кнопка» в конце. ПКМ по кнопке — изменить/удалить/переставить.
-    /// onChanged перерисовывает панель после правки.
+    /// onChanged перерисовывает панель после правки. showAdd=false — без «+ Кнопка»
+    /// (быстрые команды консоли: там своя панель создания).
     /// </summary>
-    public static void Render(AppState ctx, string panel, Panel host, TopLevel? top, Action? onChanged, Action<BarItem>? onRun = null)
+    public static void Render(AppState ctx, string panel, Panel host, TopLevel? top, Action? onChanged, Action<BarItem>? onRun = null, bool showAdd = true)
     {
         host.Children.Clear();
         var items = Items(ctx, panel);
@@ -96,6 +99,9 @@ public static class CustomBars
             btn.ContextMenu = menu;
             host.Children.Add(btn);
         }
+
+        if (!showAdd)
+            return;
 
         var add = new Button
         {

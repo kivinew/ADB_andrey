@@ -50,6 +50,10 @@ public static class Defaults
         "df",
     };
 
+    /// <summary>Быстрые команды консоли как кнопки панели: имя совпадает с командой.</summary>
+    public static List<BarItem> ConsoleQuickButtons() =>
+        ConsoleBar.Select(cmd => new BarItem { Name = cmd, Cmd = cmd }).ToList();
+
     /// <summary>Слова для подсказок: когда пользователь набирает команду с нуля.</summary>
     public static string[] ConsoleCommands { get; } =
     {

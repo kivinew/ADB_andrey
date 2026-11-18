@@ -39,16 +39,19 @@ public partial class ConsoleView : UserControl
         BottomBtn.Click += (_, _) => { AutoScroll.IsChecked = true; ScrollToBottom(); };
         CmdBox.KeyDown += OnKeyDown;
 
-        // Быстрые команды: кнопка просто подставляет команду в поле и выполняет её.
-        foreach (var command in Defaults.ConsoleBar)
-        {
-            var button = new Button { Content = command, Margin = new Thickness(0, 0, 6, 0) };
-            button.Click += (_, _) => RunCommand(command);
-            QuickBar.Children.Add(button);
-        }
-
         _timer.Tick += (_, _) => Drain();
-        Loaded += (_, _) => { ApplyFont(); RefreshCustomBar(); };
+        Loaded += (_, _) => { ApplyFont(); RefreshQuickBar(); RefreshCustomBar(); };
+    }
+
+    /// <summary>Быстрые команды: ПКМ правит и удаляет, клик выполняет в самой консоли.</summary>
+    public void RefreshQuickBar()
+    {
+        if (Ctx is null)
+            return;
+
+        CustomBars.Render(Ctx, CustomBars.PanelConsoleQuick, QuickBar,
+            TopLevel.GetTopLevel(this), RefreshQuickBar,
+            item => RunCommand(item.Cmd ?? ""), showAdd: false);
     }
 
     /// <summary>Перерисовывает кастомные кнопки панели «Консоль».</summary>
