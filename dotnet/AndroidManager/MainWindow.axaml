@@ -78,7 +78,7 @@
                 <TextBlock Text="⌘" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
               </Button>
               <Button x:Name="BtnConsole" Classes="nav-btn" ToolTip.Tip="Консоль">
-                <TextBlock Text="▢" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                <TextBlock Text="▱" FontSize="14" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
               </Button>
               <Button x:Name="BtnLogs" Classes="nav-btn" ToolTip.Tip="Логи">
                 <TextBlock Text="▤" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
