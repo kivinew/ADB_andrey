@@ -167,10 +167,11 @@ public partial class ConnectionView : UserControl
         ConnectText.Text = network ? "Отключить" : "Подключить";
 
         // Цвет ставим самому TextBlock: локальное значение перекрывает Foreground
-        // из стилей наведения. Тона тёмные — на лавандовом фоне яркие не читаются.
+        // из стилей наведения. Тона тёмные — на лавандовом фоне яркие не читаются:
+        // подключение зелёное, отключение красное.
         ConnectText.Foreground = network
             ? new SolidColorBrush(Color.Parse("#7A0C11"))
-            : new SolidColorBrush(Color.Parse("#064A52"));
+            : new SolidColorBrush(Color.Parse("#0B5A32"));
     }
 
     private async Task ToggleConnectionAsync()
