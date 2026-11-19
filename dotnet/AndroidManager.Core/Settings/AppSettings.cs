@@ -41,12 +41,22 @@ public sealed class CardSetting
     };
 }
 
-/// <summary>Одна кастомная кнопка на панели: имя, команда, тип (shell/pc).</summary>
+/// <summary>Одна кастомная кнопка на панели: имя, команда, тип (shell/pc).
+/// ShowWindow/KeepOpen/EchoOutput действуют только на pc-команды.</summary>
 public sealed class BarItem
 {
     public string Name { get; set; } = "Кнопка";
     public string Cmd { get; set; } = "";
     public string Type { get; set; } = "shell";
+
+    /// <summary>Показывать окно консоли при запуске на ПК.</summary>
+    public bool ShowWindow { get; set; }
+
+    /// <summary>Не закрывать окно после завершения (cmd /k вместо /c).</summary>
+    public bool KeepOpen { get; set; } = true;
+
+    /// <summary>Писать вывод команды в «Логи».</summary>
+    public bool EchoOutput { get; set; } = true;
 }
 
 /// <summary>Пользовательские команды для встроенных кнопок интерфейса (scrcpy, Vysor, скриншот, перезагрузка, клавиши).</summary>

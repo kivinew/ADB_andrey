@@ -3,6 +3,7 @@ using AndroidManager.Core.Settings;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
@@ -344,6 +345,21 @@ public static class CustomBars
             bar.Repaint();
     }
 
+    /// <summary>Заготовки для нового окна кнопки: заполняют поля, дальше правятся руками.</summary>
+    private static readonly (string Name, string Type, string Cmd, bool ShowWindow, bool KeepOpen, bool EchoOutput)[] Templates =
+    {
+        ("Пустая команда", "shell", "", false, true, true),
+        ("Проверка интернета (ПК, окно)", "pc", "ping 8.8.8.8", true, true, false),
+        ("Проверить доступность приставки (ПК)", "pc", "ping {serial}", true, true, false),
+        ("Открыть папку загрузок (ПК)", "pc", "start \"\" \"%USERPROFILE%\\Downloads\"", false, true, false),
+        ("Скриншот приставки на ПК", "pc", "adb -s {serial} exec-out screencap -p > \"%USERPROFILE%\\Desktop\\screen.png\"", false, true, true),
+        ("Забрать файл с приставки (ПК)", "pc", "adb -s {serial} pull /sdcard/file.txt \"%USERPROFILE%\\Desktop\\\"", false, true, true),
+        ("Список пакетов", "shell", "pm list packages -3", false, true, true),
+        ("Очистить logcat", "shell", "logcat -c", false, true, true),
+        ("Свободное место", "shell", "df -h /data", false, true, true),
+        ("Перезагрузка", "shell", "reboot", false, true, true),
+    };
+
     /// <summary>Окно создания и правки кнопки.</summary>
     public static void Edit(AppState ctx, string panel, int? id, Window? owner, Action? onChanged)
     {
@@ -356,16 +372,24 @@ public static class CustomBars
             Title = isNew
                 ? $"Новая кнопка · {PanelTitles.GetValueOrDefault(panel, panel)}"
                 : $"Изменить кнопку · {PanelTitles.GetValueOrDefault(panel, panel)}",
-            Width = 600,
-            Height = 400,
+            Width = 640,
+            Height = 620,
             CanResize = false,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Background = (IBrush?)Application.Current?.Resources["Panel"] ?? Brushes.Black,
         };
 
+        var scroll = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+        var root = new StackPanel { Spacing = 6, Margin = new Thickness(24) };
+        scroll.Content = root;
+        win.Content = scroll;
+
         var nameBox = new TextBox { Text = editing?.Name ?? "", Watermark = "Например: Очистить logcat", Margin = new Thickness(0, 0, 0, 8) };
-        var typeBox = new ComboBox { SelectedIndex = editing?.Type == "pc" ? 1 : 0, Margin = new Thickness(0, 0, 0, 8) };
+        var typeBox = new ComboBox { Margin = new Thickness(0, 0, 0, 8), HorizontalAlignment = HorizontalAlignment.Stretch };
+        // Сначала элементы, потом выбор: обратный порядок оставляет список пустым.
         typeBox.Items.Add("shell");
         typeBox.Items.Add("pc");
+        typeBox.SelectedIndex = editing?.Type == "pc" ? 1 : 0;
         var cmdBox = new TextBox { Text = editing?.Cmd ?? "", Margin = new Thickness(0, 0, 0, 8) };
 
         var error = new TextBlock
@@ -378,11 +402,48 @@ public static class CustomBars
 
         var hint = new TextBlock
         {
-            Text = "shell — команда на устройстве (adb shell …), доступны {serial} и {clipboard}\npc — команда на ПК (cmd /c …)",
+            FontSize = 11,
             Foreground = (IBrush?)Application.Current?.Resources["Muted"] ?? Brushes.Gray,
             TextWrapping = TextWrapping.Wrap,
-            Margin = new Thickness(0, 0, 0, 16),
+            Margin = new Thickness(0, 0, 0, 8),
         };
+
+        // Переключатели действуют только на pc-команды: у shell вывод всегда идёт в «Логи».
+        var showWindowBox = new CheckBox { Content = "Открывать окно консоли", IsChecked = editing?.ShowWindow ?? false };
+        var keepOpenBox = new CheckBox { Content = "Не закрывать окно после выполнения (cmd /k)", IsChecked = editing?.KeepOpen ?? true };
+        var echoBox = new CheckBox { Content = "Писать вывод команды в «Логи»", IsChecked = editing?.EchoOutput ?? true };
+
+        var pcOptions = new StackPanel { Spacing = 4, Margin = new Thickness(0, 0, 0, 8) };
+        pcOptions.Children.Add(new TextBlock { Text = "ПАРАМЕТРЫ ЗАПУСКА НА ПК", FontSize = 10, FontWeight = FontWeight.Bold });
+        pcOptions.Children.Add(showWindowBox);
+        pcOptions.Children.Add(keepOpenBox);
+        pcOptions.Children.Add(echoBox);
+
+        void RefreshHints()
+        {
+            var pc = typeBox.SelectedItem as string == "pc";
+
+            hint.Text = pc
+                ? "pc — команда на ПК: запускается через cmd.exe.\n"
+                  + "{serial} подставляется (адрес подключённого устройства), {clipboard} — нет.\n"
+                  + "Чтобы увидеть работу команды (например, ping), включите окно консоли.\n"
+                  + "Вывод попадает в «Логи» только при включённом переключателе ниже."
+                : "shell — команда на устройстве: adb shell <команда>.\n"
+                  + "{serial} — адрес подключённого устройства, {clipboard} — текст из буфера обмена.\n"
+                  + "Вводимая команда без «adb shell» — префикс добавляется сам.\n"
+                  + "На панели «Приложения» дополнительно работает {pkg} — один запуск на каждый выбранный пакет.";
+
+            pcOptions.IsVisible = pc;
+            keepOpenBox.IsVisible = pc && showWindowBox.IsChecked == true;
+
+            var preview = cmdBox.Text?.Trim() ?? "";
+            if (preview.Length == 0)
+                return;
+
+            var serial = ctx.Serial ?? "192.168.1.10:5555";
+            var shown = preview.Replace("{serial}", serial).Replace("{clipboard}", "<буфер>");
+            hint.Text += "\n\nБудет выполнено:\n" + (pc ? $"cmd.exe /{(keepOpenBox.IsChecked == true ? "k" : "c")} {shown}" : $"adb shell {shown}");
+        }
 
         var saveBtn = new Button { Content = "Сохранить", MinWidth = 100 };
         var cancelBtn = new Button { Content = "Отмена", MinWidth = 100 };
@@ -394,17 +455,56 @@ public static class CustomBars
             btnBar.Children.Add(deleteBtn);
         btnBar.Children.Add(saveBtn);
 
-        var root = new StackPanel { Spacing = 6, Margin = new Thickness(24) };
         root.Children.Add(new TextBlock { Text = "Название" });
         root.Children.Add(nameBox);
         root.Children.Add(new TextBlock { Text = "Тип" });
         root.Children.Add(typeBox);
         root.Children.Add(new TextBlock { Text = "Команда" });
         root.Children.Add(cmdBox);
+        root.Children.Add(pcOptions);
+
+        // Готовые заготовки: заполняют поля, дальше их можно править руками.
+        if (isNew)
+        {
+            root.Children.Add(new TextBlock { Text = "ШАБЛОН", FontSize = 10, FontWeight = FontWeight.Bold, Margin = new Thickness(0, 8, 0, 2) });
+
+            var templates = new StackPanel { Spacing = 4, Margin = new Thickness(0, 0, 0, 8) };
+            var templateBox = new ComboBox
+            {
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                PlaceholderText = "Выберите готовую заготовку",
+            };
+            foreach (var t in Templates)
+                templateBox.Items.Add(new ComboBoxItem { Content = t.Name });
+
+            templateBox.SelectionChanged += (_, _) =>
+            {
+                if (templateBox.SelectedIndex < 0)
+                    return;
+
+                var t = Templates[templateBox.SelectedIndex];
+                nameBox.Text = t.Name;
+                typeBox.SelectedItem = t.Type;
+                cmdBox.Text = t.Cmd;
+                showWindowBox.IsChecked = t.ShowWindow;
+                keepOpenBox.IsChecked = t.KeepOpen;
+                echoBox.IsChecked = t.EchoOutput;
+                RefreshHints();
+            };
+
+            templates.Children.Add(templateBox);
+            root.Children.Add(templates);
+        }
+
         root.Children.Add(hint);
         root.Children.Add(error);
         root.Children.Add(btnBar);
-        win.Content = root;
+
+        typeBox.SelectionChanged += (_, _) => RefreshHints();
+        cmdBox.TextChanged += (_, _) => RefreshHints();
+        showWindowBox.IsCheckedChanged += (_, _) => RefreshHints();
+        keepOpenBox.IsCheckedChanged += (_, _) => RefreshHints();
+        RefreshHints();
 
         saveBtn.Click += (_, _) =>
         {
@@ -418,7 +518,15 @@ public static class CustomBars
                 return;
             }
 
-            var barItem = new BarItem { Name = name, Cmd = cmd, Type = type };
+            var barItem = new BarItem
+            {
+                Name = name,
+                Cmd = cmd,
+                Type = type,
+                ShowWindow = showWindowBox.IsChecked == true,
+                KeepOpen = keepOpenBox.IsChecked != false,
+                EchoOutput = echoBox.IsChecked != false,
+            };
             if (isNew)
                 items.Add(barItem);
             else
@@ -475,7 +583,7 @@ public static class CustomBars
 
         if (type == "pc")
         {
-            _ = Task.Run(() => ExecutePcCommand(ctx, cmd, item.Name));
+            _ = Task.Run(() => ExecutePcCommand(ctx, cmd, item.Name, item));
             return;
         }
 
@@ -557,7 +665,7 @@ public static class CustomBars
 
                 if (client is null)
                 {
-                    ExecutePcCommand(ctx, finalCmd, $"{item.Name} · {pkg}");
+                    ExecutePcCommand(ctx, finalCmd, $"{item.Name} · {pkg}", item);
                     continue;
                 }
 
@@ -578,21 +686,55 @@ public static class CustomBars
         });
     }
 
-    private static void ExecutePcCommand(AppState ctx, string cmd, string name)
+    /// <summary>Команда на ПК. Окно консоли, /k и вывод в «Логи» задаются параметрами кнопки.</summary>
+    private static void ExecutePcCommand(AppState ctx, string cmd, string name, BarItem? item = null)
     {
+        var showWindow = item?.ShowWindow == true;
+        var keepOpen = item?.KeepOpen != false;
+        var echo = item?.EchoOutput != false;
+
+        // Подстановки: serial есть только при подключённом устройстве.
+        var finalCmd = cmd.Replace("{serial}", ctx.Serial ?? "");
+
         try
         {
             var psi = new ProcessStartInfo
             {
                 FileName = "cmd.exe",
-                Arguments = "/c " + cmd,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
+                Arguments = $"/{(keepOpen && showWindow ? "k" : "c")} {finalCmd}",
+                UseShellExecute = showWindow,
+                // Видимое окно и перенаправление вывода несовместимы.
+                CreateNoWindow = !showWindow,
+                RedirectStandardOutput = !showWindow && echo,
+                RedirectStandardError = !showWindow && echo,
             };
+
             using var proc = Process.Start(psi);
-            proc?.WaitForExit(30000);
+            if (proc is null)
+                return;
+
+            if (echo && !showWindow)
+            {
+                var stdout = proc.StandardOutput.ReadToEnd().TrimEnd();
+                var stderr = proc.StandardError.ReadToEnd().TrimEnd();
+                var rc = proc.WaitForExit(120000) ? proc.ExitCode : -1;
+
+                if (stdout.Length > 0 || stderr.Length > 0)
+                {
+                    // Многострочный вывод панель логов не любит — берём хвост.
+                    var text = (stdout + (stderr.Length > 0 ? "\n" + stderr : "")).Trim();
+                    var lines = text.Split('\n');
+                    if (lines.Length > 20)
+                        text = "…\n" + string.Join('\n', lines[^20..]);
+
+                    Dispatcher.UIThread.Post(() => ctx.Log($"{name}:\n{text}"));
+                }
+
+                Dispatcher.UIThread.Post(() => ctx.Log($"{name}: завершено, код {rc}"));
+                return;
+            }
+
+            proc.WaitForExit(30000);
             Dispatcher.UIThread.Post(() => ctx.Log($"{name}: выполнено на ПК"));
         }
         catch (Exception ex)
