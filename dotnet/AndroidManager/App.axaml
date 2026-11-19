@@ -63,6 +63,35 @@
     <FluentTheme />
 
     <!-- Шрифт Manrope с fallback на Segoe UI -->
+
+    <!-- Базовая кнопка: классы ниже переопределяют её. Без этого кнопки без Classes
+         оставались серыми прямоугольными из Fluent-темы. -->
+    <Style Selector="Button">
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Background" Value="{DynamicResource Field}" />
+      <Setter Property="Foreground" Value="{DynamicResource Text}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDim}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Padding" Value="16 9" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#20243A" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderStrong}" />
+      <Setter Property="Foreground" Value="{DynamicResource HeadText}" />
+    </Style>
+    <Style Selector="Button:pressed /template/ ContentPresenter">
+      <Setter Property="Background" Value="#262B45" />
+    </Style>
+    <Style Selector="Button:disabled /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource Field}" />
+      <Setter Property="Foreground" Value="{DynamicResource Muted}" />
+      <Setter Property="Opacity" Value="0.6" />
+    </Style>
+
     <!-- Кнопки (primary = lavender фон, ghost = тёмный с cyan текстом) -->
     <Style Selector="Button.btn--primary">
       <Setter Property="CornerRadius" Value="10" />

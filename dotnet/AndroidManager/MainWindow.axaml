@@ -27,7 +27,7 @@
             <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
               <StackPanel HorizontalAlignment="Right">
                 <TextBlock Text="ВЕРСИЯ UI" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource Muted}" HorizontalAlignment="Right" />
-                <TextBlock x:Name="UiVersion" Text="v1.21" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource Text}" HorizontalAlignment="Right" />
+                <TextBlock x:Name="UiVersion" Text="v1.22" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource Text}" HorizontalAlignment="Right" />
               </StackPanel>
               <StackPanel HorizontalAlignment="Right">
                 <TextBlock Text="ЯДРО" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource Muted}" HorizontalAlignment="Right" />
@@ -68,7 +68,7 @@
               <Button x:Name="BtnHome" Classes="nav-btn is-active" ToolTip.Tip="Подключение">
                 <Image Source="Icons/connect.png" Width="16" Height="16" Stretch="Uniform" />
               </Button>
-              <Button x:Name="BtnCards" Classes="nav-btn" ToolTip.Tip="Виджеты">
+              <Button x:Name="BtnCards" Classes="nav-btn" ToolTip.Tip="Система">
                 <Image Source="Icons/widgets.png" Width="16" Height="16" Stretch="Uniform" />
               </Button>
               <Button x:Name="BtnApps" Classes="nav-btn" ToolTip.Tip="Приложения">
