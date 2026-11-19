@@ -171,7 +171,7 @@ public partial class ConnectionView : UserControl
         // подключение зелёное, отключение красное.
         ConnectText.Foreground = network
             ? new SolidColorBrush(Color.Parse("#7A0C11"))
-            : new SolidColorBrush(Color.Parse("#0B5A32"));
+            : new SolidColorBrush(Color.Parse("#00752F"));
     }
 
     private async Task ToggleConnectionAsync()
