@@ -25,10 +25,10 @@
           <StackPanel Spacing="8">
             <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
               <TextBlock Text="📶" FontSize="18" Foreground="#F5923E" VerticalAlignment="Center" />
-              <TextBlock Text="WI-FI / IP:ПОРТ" FontSize="15" FontWeight="Bold"
+              <TextBlock Text="ADB ПО СЕТИ / IP:ПОРТ" FontSize="15" FontWeight="Bold"
                          Foreground="{DynamicResource Text}" VerticalAlignment="Center" />
             </StackPanel>
-            <TextBlock Text="БЕСПРОВОДНОЕ ПОДКЛЮЧЕНИЕ" FontSize="10" FontWeight="Bold"
+            <TextBlock Text="ADB ЧЕРЕЗ WI-FI" FontSize="10" FontWeight="Bold"
                        Foreground="{DynamicResource Muted}" LetterSpacing="0.5" />
             <Border Classes="badge" HorizontalAlignment="Left">
               <StackPanel Orientation="Horizontal" Spacing="6">
