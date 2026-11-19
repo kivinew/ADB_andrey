@@ -17,7 +17,6 @@
     <AvaloniaResource Include="Icons\apps.png" />
     <AvaloniaResource Include="Icons\connect.png" />
     <AvaloniaResource Include="Icons\process.png" />
-    <AvaloniaResource Include="Icons\action.png" />
     <AvaloniaResource Include="Icons\logs.png" />
     <AvaloniaResource Include="Icons\widgets.png" />
     <!-- Инструменты (adb/scrcpy) копируются рядом с exe, как в Python-версии -->
