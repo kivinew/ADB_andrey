@@ -54,8 +54,15 @@
 
           <!-- Кнопки сети: подключение и сопряжение — здесь же, рядом с адресом -->
           <Grid ColumnDefinitions="*,10,Auto">
-            <Button Grid.Column="0" x:Name="ConnectBtn" Content="Подключить"
-                    Classes="btn--primary" HorizontalAlignment="Stretch" />
+            <Button Grid.Column="0" x:Name="ConnectBtn" Classes="btn--primary" HorizontalAlignment="Stretch">
+              <!-- Ореол вокруг текста: красный на лавандовом иначе плохо читается -->
+              <TextBlock x:Name="ConnectText" Text="Подключить" FontWeight="Bold">
+                <TextBlock.Effect>
+                  <!-- В Avalonia 11 у эффекта нет Direction/ShadowDepth: ореол даёт нулевое смещение -->
+                  <DropShadowEffect BlurRadius="6" OffsetX="0" OffsetY="0" Color="#D9101020" />
+                </TextBlock.Effect>
+              </TextBlock>
+            </Button>
             <Button Grid.Column="2" x:Name="PairBtn" Content="СОПРЯЖЕНИЕ..."
                     Classes="btn--ghost" />
           </Grid>

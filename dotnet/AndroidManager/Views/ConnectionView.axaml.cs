@@ -4,6 +4,7 @@ using AndroidManager.Core.Settings;
 using AndroidManager.Services;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Media;
 using System.Net;
 
 namespace AndroidManager.Views;
@@ -163,12 +164,14 @@ public partial class ConnectionView : UserControl
     private void UpdateConnectButton()
     {
         var network = !string.IsNullOrEmpty(Ctx.Serial) && Ctx.Serial.Contains(':');
-        ConnectBtn.Content = network ? "Отключить" : "Подключить";
+        ConnectText.Text = network ? "Отключить" : "Подключить";
 
-        // Текст цветом по действию: подключение — зелёное, отключение — красное.
-        // Через классы, а не Foreground: стиль наведения пишет цвет в ContentPresenter.
-        ConnectBtn.Classes.Set("connect-on", !network);
-        ConnectBtn.Classes.Set("connect-off", network);
+        // Цвет ставим самому TextBlock: локальное значение перекрывает Foreground
+        // из стилей наведения, а тёмный ореол (DropShadowEffect) держит контраст.
+        // Бирюзовый совпадает с цветом заголовков (HeadText).
+        ConnectText.Foreground = network
+            ? new SolidColorBrush(Color.Parse("#8E1116"))
+            : new SolidColorBrush(Color.Parse("#0B6E77"));
     }
 
     private async Task ToggleConnectionAsync()
