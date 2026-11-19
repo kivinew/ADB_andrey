@@ -27,7 +27,7 @@
             <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
               <StackPanel HorizontalAlignment="Right">
                 <TextBlock Text="ВЕРСИЯ UI" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource Muted}" HorizontalAlignment="Right" />
-                <TextBlock x:Name="UiVersion" Text="v1.24" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource Text}" HorizontalAlignment="Right" />
+                <TextBlock x:Name="UiVersion" Text="v1.25" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource Text}" HorizontalAlignment="Right" />
               </StackPanel>
               <StackPanel HorizontalAlignment="Right">
                 <TextBlock Text="ЯДРО" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource Muted}" HorizontalAlignment="Right" />
@@ -80,7 +80,7 @@
               <Button x:Name="BtnConsole" Classes="nav-btn" ToolTip.Tip="Консоль">
                 <Button.Content>
                   <Viewbox Width="20" Height="14" Stretch="Uniform">
-                    <Path Width="14" Height="10" Fill="#7B84A0">
+                    <Path Width="14" Height="10" Fill="{DynamicResource Accent}">
                       <Path.Data>
                         <PathGeometry FillRule="EvenOdd">
                           <PathFigure StartPoint="0,0" IsClosed="True">
@@ -115,14 +115,14 @@
               <Button x:Name="BtnActions" Classes="nav-btn" ToolTip.Tip="Действия">
                 <!-- Векторная молния: растровая 16×16 в сайдбаре выглядела мыльной -->
                 <Viewbox Width="20" Height="15" Stretch="Uniform">
-                  <Path Width="9" Height="16" Fill="#7B84A0" Data="M5,0 L0,10 L4.5,10 L3,16 L9,6 L5,6 Z" />
+                  <Path Width="9" Height="16" Fill="{DynamicResource Accent}" Data="M5,0 L0,10 L4.5,10 L3,16 L9,6 L5,6 Z" />
                 </Viewbox>
               </Button>
             </StackPanel>
 
             <StackPanel Grid.Row="1" Spacing="10" VerticalAlignment="Bottom">
               <Button x:Name="BtnSettings" Classes="nav-btn" ToolTip.Tip="Настройки">
-                <TextBlock Text="⚙" FontSize="16" Foreground="#7B84A0" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                <TextBlock Text="⚙" FontSize="16" Foreground="{DynamicResource Accent}" VerticalAlignment="Center" HorizontalAlignment="Center" />
               </Button>
             </StackPanel>
           </Grid>
