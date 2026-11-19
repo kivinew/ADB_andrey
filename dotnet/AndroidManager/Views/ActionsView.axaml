@@ -30,7 +30,7 @@
             <TextBlock Text="— трансляция экрана устройства на ПК" FontSize="11" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" />
           </StackPanel>
 
-          <Grid ColumnDefinitions="Auto,120,Auto,80,Auto,100,Auto,120" RowDefinitions="Auto,Auto"
+          <Grid ColumnDefinitions="Auto,120,Auto,80,Auto,100,Auto,120,*"
                 ColumnSpacing="8" RowSpacing="8">
             <TextBlock Text="Max size" FontSize="10" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" />
             <TextBox x:Name="ScMax" Watermark="1280" Width="100" Grid.Column="1" />
@@ -44,9 +44,9 @@
               <ComboBoxItem Content="h265" />
               <ComboBoxItem Content="av1" />
             </ComboBox>
-            <!-- Кнопка в своей строке: раньше она делила строку с полями и накрывала Bitrate -->
-            <Button Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="8" x:Name="BtnScStart"
-                    Content="ЗАПУСТИТЬ scrcpy" Classes="btn--primary" HorizontalAlignment="Right" />
+            <!-- Кнопка в своей колонке справа: без ColumnSpan, иначе ложится поверх Bitrate/Codec -->
+            <Button Grid.Column="8" x:Name="BtnScStart" Content="ЗАПУСТИТЬ scrcpy"
+                    Classes="btn--primary" HorizontalAlignment="Right" VerticalAlignment="Center" />
           </Grid>
 
           <StackPanel Orientation="Horizontal" Spacing="12" Margin="0 6 0 0">
