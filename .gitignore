@@ -29,3 +29,9 @@ venv/
 Thumbs.db
 # бинарные инструменты C#-версии (копируются рядом с exe)
 dotnet/AndroidManager/tools/
+
+# снимки и вспомогательные скрипты ручной проверки UI
+dtest_*.png
+dtest_*.ps1
+actions_shot.png
+skill_test.png
