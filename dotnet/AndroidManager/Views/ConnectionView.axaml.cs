@@ -164,6 +164,11 @@ public partial class ConnectionView : UserControl
     {
         var network = !string.IsNullOrEmpty(Ctx.Serial) && Ctx.Serial.Contains(':');
         ConnectBtn.Content = network ? "Отключить" : "Подключить";
+
+        // Текст цветом по действию: подключение — зелёное, отключение — красное.
+        // Через классы, а не Foreground: стиль наведения пишет цвет в ContentPresenter.
+        ConnectBtn.Classes.Set("connect-on", !network);
+        ConnectBtn.Classes.Set("connect-off", network);
     }
 
     private async Task ToggleConnectionAsync()

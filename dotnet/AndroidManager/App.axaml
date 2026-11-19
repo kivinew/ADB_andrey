@@ -106,6 +106,14 @@
     <Style Selector="Button.btn--primary:pointerover /template/ ContentPresenter">
       <Setter Property="Background" Value="#C9B3FF" />
     </Style>
+
+    <!-- Кнопка подключения: цвет текста по действию, включая наведение -->
+    <Style Selector="Button.btn--primary.connect-on /template/ ContentPresenter">
+      <Setter Property="Foreground" Value="#12A594" />
+    </Style>
+    <Style Selector="Button.btn--primary.connect-off /template/ ContentPresenter">
+      <Setter Property="Foreground" Value="#E5484D" />
+    </Style>
     <Style Selector="Button.btn--ghost">
       <Setter Property="CornerRadius" Value="10" />
       <Setter Property="Background" Value="#181B2C" />
