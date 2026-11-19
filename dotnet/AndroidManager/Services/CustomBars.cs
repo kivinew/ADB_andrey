@@ -84,10 +84,14 @@ public static class CustomBars
             var item = items[idx];
             var i = idx;
 
+            // Тот же акцент, что у кнопки подключения; padding компактнее — кнопки идут в ряд.
             var btn = new Button
             {
                 Content = item.Name,
                 Margin = new Thickness(0, 0, 6, 6),
+                Classes = { "btn--primary" },
+                Padding = new Thickness(14, 6),
+                FontSize = 12,
             };
             ToolTip.SetTip(btn, $"{item.Type}: {item.Cmd}\nПеретащите кнопку, чтобы переставить её");
             btn.Click += (_, _) =>
@@ -135,6 +139,8 @@ public static class CustomBars
             Content = "+ Кнопка",
             Margin = new Thickness(0, 0, 6, 6),
             Classes = { "btn--ghost" },
+            Padding = new Thickness(14, 6),
+            FontSize = 12,
         };
         ToolTip.SetTip(add, $"Создать свою кнопку на панели «{PanelTitles.GetValueOrDefault(panel, panel)}»");
         add.Click += (_, _) => Edit(ctx, panel, null, top as Window, onChanged);
