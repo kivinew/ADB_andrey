@@ -1,0 +1,51 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="AndroidManager.Views.ScriptsView">
+  <Grid RowDefinitions="Auto,Auto,*" Margin="8" RowSpacing="12">
+
+    <!-- Верхняя панель действий -->
+    <WrapPanel Grid.Row="0" Orientation="Horizontal">
+      <Button x:Name="AddBtn" Content="+ Добавить скрипт" Classes="btn--primary" Margin="0,0,8,0"
+              ToolTip.Tip="Выбрать файл скрипта (.py, .ps1, .sh, .bat) и скопировать в папку scripts" />
+      <Button x:Name="StopBtn" Content="■ Остановить" Classes="btn--ghost" IsEnabled="False" Margin="0,0,8,0"
+              ToolTip.Tip="Остановить выполняющийся скрипт" />
+      <Button x:Name="OpenFolderBtn" Content="Открыть папку скриптов" Classes="btn--ghost"
+              ToolTip.Tip="Открыть папку scripts в проводнике" />
+    </WrapPanel>
+
+    <!-- Мои скрипты -->
+    <Border Grid.Row="1" Classes="card" Padding="16">
+      <StackPanel Spacing="10">
+        <TextBlock Text="МОИ СКРИПТЫ" FontSize="11" FontWeight="Bold"
+                   Foreground="{DynamicResource Muted}" LetterSpacing="0.5" />
+        <TextBlock x:Name="EmptyHint"
+                   Text="Нет добавленных скриптов. Нажмите «+ Добавить скрипт», чтобы добавить файл."
+                   FontSize="12" Foreground="{DynamicResource Muted}" IsVisible="True" />
+        <WrapPanel x:Name="ScriptsBar" Orientation="Horizontal" />
+      </StackPanel>
+    </Border>
+
+    <!-- Результат скрипта -->
+    <Border Grid.Row="2" Classes="card" Padding="16">
+      <Grid RowDefinitions="Auto,*" RowSpacing="10">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+          <TextBlock Grid.Column="0" Text="РЕЗУЛЬТАТ СКРИПТА" FontSize="11" FontWeight="Bold"
+                     Foreground="{DynamicResource Muted}" LetterSpacing="0.5" VerticalAlignment="Center" />
+          <Button Grid.Column="1" x:Name="CopyBtn" Content="Копировать результат" Classes="btn--ghost" />
+          <Button Grid.Column="2" x:Name="ClearBtn" Content="Очистить результат" Classes="btn--ghost" />
+        </Grid>
+
+        <TextBox Grid.Row="1" x:Name="OutputBox"
+                 Background="{DynamicResource Term}"
+                 Foreground="{DynamicResource Ok}"
+                 FontFamily="Consolas"
+                 FontSize="12"
+                 IsReadOnly="True"
+                 AcceptsReturn="True"
+                 TextWrapping="Wrap"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto" />
+      </Grid>
+    </Border>
+
+  </Grid>
+</UserControl>

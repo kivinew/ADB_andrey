@@ -114,6 +114,9 @@
               <Button x:Name="BtnLogs" Classes="nav-btn" ToolTip.Tip="Логи">
                 <Image Source="Icons/logs.png" Width="16" Height="16" Stretch="Uniform" />
               </Button>
+              <Button x:Name="BtnScripts" Classes="nav-btn" ToolTip.Tip="Скрипты">
+                <PathIcon Data="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16" Width="16" Height="16" />
+              </Button>
               <Button x:Name="BtnActions" Classes="nav-btn" ToolTip.Tip="Действия">
                 <!-- Векторная молния: растровая 16×16 в сайдбаре выглядела мыльной -->
                 <Viewbox Width="20" Height="15" Stretch="Uniform">
@@ -172,6 +175,11 @@
             <!-- Логи -->
             <Border Classes="panel" x:Name="PanelLogs" IsVisible="False" Margin="32">
               <views:LogView x:Name="LogsTab" />
+            </Border>
+
+            <!-- Скрипты -->
+            <Border Classes="panel" x:Name="PanelScripts" IsVisible="False" Margin="32">
+              <views:ScriptsView x:Name="ScriptsTab" />
             </Border>
 
           </Grid>

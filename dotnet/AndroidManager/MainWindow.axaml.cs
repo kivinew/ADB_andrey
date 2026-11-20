@@ -43,6 +43,7 @@ public partial class MainWindow : Window
         CardsTab.Ctx = _ctx;
         ProcsTab.Ctx = _ctx;
         ActionsTab.Ctx = _ctx;
+        ScriptsTab.Ctx = _ctx;
         SettingsTab.Ctx = _ctx;
         LogsTab.Attach(_ctx);
 
@@ -59,6 +60,7 @@ public partial class MainWindow : Window
         BtnActions.Click += (_, _) => ShowPage("actions");
         BtnSettings.Click += (_, _) => ShowPage("settings");
         BtnLogs.Click += (_, _) => ShowPage("logs");
+        BtnScripts.Click += (_, _) => ShowPage("scripts");
 
         // Управление окном (без системной рамки)
         TitleBar.PointerPressed += (_, e) => BeginMoveDrag(e);
@@ -66,7 +68,11 @@ public partial class MainWindow : Window
         MaxBtn.Click += (_, _) => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
         CloseBtn.Click += (_, _) => Close();
 
-        Closed += (_, _) => ConsoleTab.Shutdown();
+        Closed += (_, _) =>
+        {
+            ConsoleTab.Shutdown();
+            ScriptsTab.StopScript();
+        };
 
         // Логи теперь во вкладке, не в отдельном окне.
 
@@ -96,6 +102,7 @@ public partial class MainWindow : Window
         PanelProcs.IsVisible = page == "procs";
         PanelActions.IsVisible = page == "actions";
         PanelLogs.IsVisible = page == "logs";
+        PanelScripts.IsVisible = page == "scripts";
         PanelSettings.IsVisible = page == "settings";
 
         SetActiveSidebar(page);
@@ -111,7 +118,7 @@ public partial class MainWindow : Window
 
     private void SetActiveSidebar(string page)
     {
-        foreach (var btn in new[] { BtnHome, BtnConsole, BtnApps, BtnCards, BtnProcs, BtnActions, BtnLogs, BtnSettings })
+        foreach (var btn in new[] { BtnHome, BtnConsole, BtnApps, BtnCards, BtnProcs, BtnActions, BtnLogs, BtnScripts, BtnSettings })
         {
             var classes = btn.Classes;
             if (classes.Contains("is-active"))
@@ -127,6 +134,7 @@ public partial class MainWindow : Window
             "procs" => BtnProcs,
             "actions" => BtnActions,
             "logs" => BtnLogs,
+            "scripts" => BtnScripts,
             "settings" => BtnSettings,
             _ => BtnHome
         };
