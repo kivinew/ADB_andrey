@@ -26,12 +26,10 @@ public partial class ScriptsView : UserControl
 
     private const string AdbShimSource = @"# -*- coding: utf-8 -*-
 # adb module for user scripts (C# Android-manager).
-# Provides shell(command, timeout=60) -> str.
-# Usage:
-#     import adb
-#     output = adb.shell('logcat -d -t 100')
+# Standalone API: shell, call, getprop, packages, install, push/pull, screenshot, reboot.
 import os
 import subprocess
+import time
 
 
 def _adb_exe():
@@ -42,21 +40,119 @@ def _adb_exe():
     return 'adb'
 
 
-def shell(command, timeout=60):
-    exe = _adb_exe()
-    args = [exe]
-    serial = os.environ.get('ANDROID_SERIAL') or ''
-    if serial:
-        args += ['-s', serial]
-    args += ['shell', command]
+def _serial():
+    return os.environ.get('ANDROID_SERIAL') or ''
+
+
+def _run(args, timeout=30):
     try:
-        proc = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
+        proc = subprocess.run([_adb_exe()] + args, capture_output=True, timeout=timeout,
+                               stdin=subprocess.DEVNULL)
+        return proc.returncode, proc.stdout.decode('utf-8', 'replace'), proc.stderr.decode('utf-8', 'replace')
     except Exception as exc:
-        raise RuntimeError('adb shell failed: {}'.format(exc))
-    return ((proc.stdout or '') + (proc.stderr or '')).rstrip('\n')
+        raise RuntimeError('adb failed: {}'.format(exc))
 
 
-__all__ = ['shell'];
+def shell(command, timeout=60):
+    rc, out, err = _run(['-s', _serial(), 'shell', command], timeout=timeout)
+    return ((out or '') + (err or '')).rstrip('\n')
+
+
+def call(*args, timeout=120):
+    rc, out, err = _run(['-s', _serial(), *args], timeout=timeout)
+    return rc, out, err
+
+
+def getprop(name):
+    return shell('getprop {}'.format(name)).strip()
+
+
+def packages(kind='all'):
+    flags = {'all': [], 'user': ['-3'], 'system': ['-s'], 'disabled': ['-d']}.get(kind, [])
+    rc, out, err = _run(['-s', _serial(), 'pm', 'list', 'packages', *flags], timeout=90)
+    names = []
+    for line in (out or '').splitlines():
+        line = line.strip()
+        if line.startswith('package:'):
+            names.append(line.split('package:', 1)[1].strip())
+    return names
+
+
+def force_stop(pkg):
+    return shell('am force-stop {}'.format(pkg))
+
+
+def clear(pkg):
+    return shell('pm clear {}'.format(pkg))
+
+
+def disable(pkg):
+    return shell('pm disable-user --user 0 {}'.format(pkg))
+
+
+def enable(pkg):
+    return shell('pm enable --user 0 {}'.format(pkg))
+
+
+def uninstall(pkg):
+    return shell('pm uninstall -k --user 0 {}'.format(pkg))
+
+
+def launch(pkg):
+    return shell('monkey -p {} -c android.intent.category.LAUNCHER 1'.format(pkg), timeout=30)
+
+
+def install(apk_path):
+    rc, out, err = _run(['-s', _serial(), 'install', '-r', apk_path], timeout=600)
+    text = ((out or '') + (err or '')).strip()
+    return 'Success' in text, text
+
+
+def push(local_path, remote_path):
+    rc, out, err = _run(['-s', _serial(), 'push', local_path, remote_path], timeout=600)
+    if rc != 0:
+        raise RuntimeError((out or '') + (err or ''))
+    return (out or '').strip()
+
+
+def pull(remote_path, local_path):
+    rc, out, err = _run(['-s', _serial(), 'pull', remote_path, local_path], timeout=600)
+    if rc != 0:
+        raise RuntimeError((out or '') + (err or ''))
+    return local_path
+
+
+def screenshot(path):
+    try:
+        proc = subprocess.run([_adb_exe(), '-s', _serial(), 'exec-out', 'screencap', '-p'],
+                               capture_output=True, timeout=60, stdin=subprocess.DEVNULL)
+    except Exception as exc:
+        raise RuntimeError('adb failed: {}'.format(exc))
+    if proc.returncode != 0 or not proc.stdout:
+        raise RuntimeError('screencap failed')
+    with open(path, 'wb') as fh:
+        fh.write(proc.stdout)
+    return path
+
+
+def reboot(mode=''):
+    _run(['-s', _serial(), 'reboot'] + ([mode] if mode else []), timeout=15)
+
+
+def sleep(seconds):
+    end = time.time() + seconds
+    while time.time() < end:
+        time.sleep(min(0.2, max(0, end - time.time())))
+
+
+def check():
+    pass
+
+
+stopped = False
+
+
+__all__ = ['shell', 'call', 'getprop', 'packages', 'force_stop', 'clear', 'disable', 'enable', 'uninstall', 'launch', 'install', 'push', 'pull', 'screenshot', 'reboot', 'sleep', 'check'];
 ";
 
     public ScriptsView()
@@ -224,13 +320,14 @@ __all__ = ['shell'];
         var psi = new ProcessStartInfo
         {
             FileName = exe,
-            Arguments = args,
             WorkingDirectory = ScriptsDir,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
             CreateNoWindow = true
         };
+        foreach (var a in args)
+            psi.ArgumentList.Add(a);
 
         var serial = Ctx?.Serial;
         if (!string.IsNullOrEmpty(serial))
@@ -272,17 +369,17 @@ __all__ = ['shell'];
         }
     }
 
-    private static (string exe, string args) BuildCommand(string path)
+    private static (string exe, List<string> args) BuildCommand(string path)
     {
         var ext = Path.GetExtension(path).ToLowerInvariant();
-        var q = $"\"{path}\"";
+        var args = new List<string>();
         return ext switch
         {
-            ".py" => (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "python" : "python3", q),
-            ".ps1" => (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "powershell" : "pwsh", $"-NoProfile -ExecutionPolicy Bypass -File {q}"),
-            ".bat" or ".cmd" => ("cmd.exe", $"/c {q}"),
-            ".sh" => ("bash", q),
-            _ => (path, "")
+            ".py" => (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "python" : "python3", new List<string> { "-c", "import runpy, sys; m = __import__('adb'); sys.modules['adb'] = m; p = sys.argv[1]; sys.argv[0] = p; runpy.run_path(p, run_name='__main__', init_globals={'adb': m})", path }),
+            ".ps1" => (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "powershell" : "pwsh", new List<string> { "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", path }),
+            ".bat" or ".cmd" => ("cmd.exe", new List<string> { "/c", path }),
+            ".sh" => ("bash", new List<string> { path }),
+            _ => (path, new List<string>())
         };
     }
 
