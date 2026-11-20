@@ -73,7 +73,18 @@ public partial class MainWindow : Window
         ApplyThemeAndFont();
         _ctx.Log($"Настройки: {_ctx.SettingsPath}");
         ShowPage("home");
+
+        // Гарантируем, что ADB сервер поднят, прежде чем трогать устройства.
+        _ = EnsureAdbServerAsync();
+
         _ = RefreshDevicesAsync();
+    }
+
+    private async Task EnsureAdbServerAsync()
+    {
+        var started = await Task.Run(() => AdbServer.EnsureStarted(_ctx.AdbPath));
+        if (!started)
+            _ctx.Log("ADB сервер не запустился ни при старте, ни после перезапуска");
     }
 
     private void ShowPage(string page)
