@@ -26,9 +26,9 @@
       <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="6">
         <TextBlock Grid.Column="0" Text="$" VerticalAlignment="Center" FontFamily="Consolas" />
         <TextBox Grid.Column="1" x:Name="CmdBox" FontFamily="Consolas" />
-        <Button Grid.Column="2" x:Name="RunBtn" Content="Выполнить" />
-        <Button Grid.Column="3" x:Name="StopBtn" Content="Стоп" IsEnabled="False" />
-        <Button Grid.Column="4" x:Name="ClearBtn" Content="Очистить" />
+        <Button Grid.Column="2" x:Name="RunBtn" Content="Выполнить" Classes="btn--primary" />
+        <Button Grid.Column="3" x:Name="StopBtn" Content="Стоп" Classes="btn--ghost" IsEnabled="False" />
+        <Button Grid.Column="4" x:Name="ClearBtn" Content="Очистить" Classes="btn--ghost" />
       </Grid>
     </StackPanel>
   </Grid>

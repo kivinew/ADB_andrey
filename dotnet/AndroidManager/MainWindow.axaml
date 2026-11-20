@@ -5,10 +5,12 @@
              xmlns:views="using:AndroidManager.Views"
              mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="880"
              x:Class="AndroidManager.MainWindow"
-             Title="Android manager"
-             Width="1280" Height="880"
-             MinWidth="900" MinHeight="600"
-             Background="{DynamicResource Bg}">
+        Title="Android manager"
+        Width="1280" Height="880"
+        MinWidth="900" MinHeight="600"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        Background="{DynamicResource Bg}">
 
   <Border CornerRadius="18" BorderBrush="{DynamicResource BorderDim}" BorderThickness="1" Background="{DynamicResource Bg}" Padding="0">
 

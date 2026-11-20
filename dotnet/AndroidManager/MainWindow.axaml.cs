@@ -15,9 +15,9 @@ namespace AndroidManager;
 
 public partial class MainWindow : Window
 {
-    private static readonly IBrush StatusOk = new SolidColorBrush(Color.Parse("#A6E3A1"));
-    private static readonly IBrush StatusWarn = new SolidColorBrush(Color.Parse("#F9E2AF"));
-    private static readonly IBrush StatusErr = new SolidColorBrush(Color.Parse("#F38BA8"));
+    private static readonly IBrush StatusOk = new SolidColorBrush(Color.Parse("#4DD4FF"));
+    private static readonly IBrush StatusWarn = new SolidColorBrush(Color.Parse("#F5923E"));
+    private static readonly IBrush StatusErr = new SolidColorBrush(Color.Parse("#FF6B8A"));
 
     private readonly AppState _ctx;
     private bool _busy;

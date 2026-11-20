@@ -49,7 +49,8 @@ class FlowFrame(ttk.Frame):
         for w, (x, y) in zip(self.items, pos):
             w.place(x=x, y=y)
         h = max(total, 1)
-        if int(float(self.cget("height") or 0)) != h:
+        current_h = self.cget("height")
+        if int(float(str(current_h) or 0)) != h:
             self.configure(height=h)
 
     def clear(self):
@@ -62,6 +63,7 @@ class FlowFrame(ttk.Frame):
 
 class ButtonPanel(ttk.Frame):
     """Панель кнопок в виде равномерной сетки: 2 колонки, одинаковая ширина кнопок."""
+
     def __init__(self, master, columns=2, gap=8, **kw):
         super().__init__(master, **kw)
         self.columns = columns

@@ -4,12 +4,35 @@
 import traceback
 
 
+def ensure_adb_server():
+    """Проверяет и при необходимости перезапускает ADB сервер."""
+    from .paths import ADB
+    from .proc import run
+
+    def is_adb_responsive():
+        rc, out, _ = run([ADB, "version"], 5)
+        return rc == 0 and "Android Debug Bridge" in out
+
+    if is_adb_responsive():
+        return
+
+    # Пробуем убить и перезапустить
+    run([ADB, "kill-server"], 10)
+    run([ADB, "start-server"], 10)
+
+    # Финальная проверка
+    if not is_adb_responsive():
+        run([ADB, "kill-server"], 5)
+        run([ADB, "start-server"], 10)
+
+
 def bootstrap():
-    """Готовит папки данных и заглушку scripts/adb.py. Вызывается один раз при старте."""
+    """Готовит папки данных, заглушку scripts/adb.py и проверяет ADB сервер."""
     from .paths import ensure_dirs, write_adb_shim
 
     ensure_dirs()
     write_adb_shim()
+    ensure_adb_server()
 
 
 def main():
