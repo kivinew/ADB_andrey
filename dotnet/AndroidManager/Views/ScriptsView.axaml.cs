@@ -22,9 +22,48 @@ public partial class ScriptsView : UserControl
     private readonly List<ScriptEntry> _scripts = new();
     private Process? _running;
 
+    private const string AdbShimFileName = "adb.py";
+
+    private const string AdbShimSource = @"# -*- coding: utf-8 -*-
+# adb module for user scripts (C# Android-manager).
+# Provides shell(command, timeout=60) -> str.
+# Usage:
+#     import adb
+#     output = adb.shell('logcat -d -t 100')
+import os
+import subprocess
+
+
+def _adb_exe():
+    here = os.path.dirname(os.path.abspath(__file__))
+    local = os.path.join(os.path.dirname(here), 'tools', 'adb', 'adb.exe')
+    if os.path.isfile(local):
+        return local
+    return 'adb'
+
+
+def shell(command, timeout=60):
+    exe = _adb_exe()
+    args = [exe]
+    serial = os.environ.get('ANDROID_SERIAL') or ''
+    if serial:
+        args += ['-s', serial]
+    args += ['shell', command]
+    try:
+        proc = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
+    except Exception as exc:
+        raise RuntimeError('adb shell failed: {}'.format(exc))
+    return ((proc.stdout or '') + (proc.stderr or '')).rstrip('\n')
+
+
+__all__ = ['shell'];
+";
+
     public ScriptsView()
     {
         InitializeComponent();
+
+        EnsureAdbShim();
 
         AddBtn.Click += async (_, _) => await AddScriptAsync();
         StopBtn.Click += (_, _) => StopScript();
@@ -33,6 +72,22 @@ public partial class ScriptsView : UserControl
         ClearBtn.Click += (_, _) => OutputBox.Text = "";
 
         Loaded += (_, _) => LoadScripts();
+    }
+
+    private void EnsureAdbShim()
+    {
+        var path = Path.Combine(ScriptsDir, AdbShimFileName);
+        if (File.Exists(path))
+            return;
+
+        try
+        {
+            File.WriteAllText(path, AdbShimSource);
+        }
+        catch (Exception ex)
+        {
+            AppendOutput($"[ошибка записи adb.py] {ex.Message}");
+        }
     }
 
     private string ScriptsDir
