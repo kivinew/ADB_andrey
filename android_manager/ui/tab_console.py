@@ -371,7 +371,8 @@ class ConsoleTab:
                     line = self.stream_proc.stdout.readline()
                     if not line:
                         break
-                    push(line.rstrip("\n"))
+                    # rstrip и \n, и \r: universal_newlines даёт CRLF на Windows.
+                    push(line.rstrip("\r\n"))
                 rc = self.stream_proc.wait()
                 if not self.stream_stop.is_set():
                     push_end(f"[завершено с кодом {rc}]")
@@ -461,9 +462,12 @@ class ConsoleTab:
             self.after(50, self._poll_stream_queue)
 
     def _append_console(self, text):
-        self.console.insert("end", text + "\n")
-        self.console.see("end")
-        self._trim_console()
+        # adb отдаёт CRLF, а Text показывает \r как мусор и даёт лишнюю пустую строку.
+        text = text.replace("\r\n", "\n").replace("\r", "").rstrip("\n")
+        if text:
+            self.console.insert("end", text + "\n")
+            self.console.see("end")
+            self._trim_console()
 
     def _trim_console(self):
         """Оставляет в буфере не больше CONSOLE_TRIM_TO строк, удаляя самые старые."""
