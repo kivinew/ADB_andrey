@@ -290,7 +290,7 @@ class ConsoleTab:
             self.hist_list = self.hist_list[-limit:]
             self.hist_i = len(self.hist_list)
         self.cmd_var.set("")
-        self.console.insert("end", f"$ {cmd}\\n")
+        self.console.insert("end", f"$ {cmd}\n")
         self.console.see("end")
         
         if is_streaming or cmd.startswith("logcat"):
