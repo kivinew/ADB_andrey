@@ -33,9 +33,12 @@ public partial class LogView : UserControl
 
     private void OnLogged(string text)
     {
+        // Метка времени как в Python-версии: [ЧЧ:ММ:СС]
+        var stamp = DateTime.Now.ToString("HH:mm:ss");
+
         Dispatcher.UIThread.Post(() =>
         {
-            LogList.Items.Add(text);
+            LogList.Items.Add($"[{stamp}] {text}");
             if (AutoScroll.IsChecked == true)
                 ScrollToBottom();
         });

@@ -235,6 +235,7 @@ public partial class CardsView : UserControl
             }
 
             Ctx.SaveSettings();
+            Ctx.Log($"Показатель сохранён: {setting.Title}");
             Rebuild();
             win.Close();
         };
@@ -278,6 +279,7 @@ public partial class CardsView : UserControl
 
         Ctx.Settings.Cards.Remove(setting);
         Ctx.SaveSettings();
+        Ctx.Log($"Показатель удалён: {setting.Title}");
         Rebuild();
         _selected = null;
         UpdateCommandButtons();

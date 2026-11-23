@@ -311,11 +311,13 @@ __all__ = ['shell', 'call', 'getprop', 'packages', 'force_stop', 'clear', 'disab
         if (!File.Exists(path))
         {
             AppendOutput($"[файл не найден] {path}");
+            Ctx?.Log($"Скрипт «{entry.Name}»: файл не найден — {path}");
             return;
         }
 
         var (exe, args) = BuildCommand(path);
         AppendOutput($">>> {entry.Name} ({entry.FileName})");
+        Ctx?.Log($"Запуск скрипта «{entry.Name}» ({entry.FileName})");
 
         var psi = new ProcessStartInfo
         {
@@ -356,10 +358,12 @@ __all__ = ['shell', 'call', 'getprop', 'packages', 'force_stop', 'clear', 'disab
 
             await proc.WaitForExitAsync();
             AppendOutput($"[завершено с кодом {proc.ExitCode}]");
+            Ctx?.Log($"Скрипт «{entry.Name}»: завершён, код {proc.ExitCode}");
         }
         catch (Exception ex)
         {
             AppendOutput($"[ошибка запуска] {ex.Message}");
+            Ctx?.Log($"Скрипт «{entry.Name}»: ошибка запуска — {ex.Message}");
         }
         finally
         {
@@ -389,13 +393,19 @@ __all__ = ['shell', 'call', 'getprop', 'packages', 'force_stop', 'clear', 'disab
         {
             if (_running is not null && !_running.HasExited)
             {
+                Ctx?.Log("Остановка скрипта...");
                 _running.Kill(entireProcessTree: true);
                 AppendOutput("[скрипт остановлен]");
+            }
+            else
+            {
+                AppendOutput("[скрипт не выполняется]");
             }
         }
         catch (Exception ex)
         {
             AppendOutput($"[ошибка остановки] {ex.Message}");
+            Ctx?.Log($"Остановка скрипта: ошибка — {ex.Message}");
         }
     }
 

@@ -22,6 +22,9 @@ public partial class MainWindow : Window
     private readonly AppState _ctx;
     private bool _busy;
 
+    // Было ли устройство без ответа на прошлом опросе: логируем только переходы.
+    private bool _deviceUnresponsive;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -257,9 +260,22 @@ public partial class MainWindow : Window
 
         if (values.Count == 0)
         {
+            // Логируем только переход в «нет ответа», иначе опрос засорял бы лог.
+            if (!_deviceUnresponsive)
+            {
+                _deviceUnresponsive = true;
+                _ctx.Log($"Устройство {serial} отключено (нет ответа)");
+            }
+
             SetStatus($"Подключено: {serial} (нет ответа)", StatusWarn);
             ConnectionTab.ShowNoDevice();
             return;
+        }
+
+        if (_deviceUnresponsive)
+        {
+            _deviceUnresponsive = false;
+            _ctx.Log($"Устройство {serial} восстановлено");
         }
 
         values.TryGetValue("M", out var model);

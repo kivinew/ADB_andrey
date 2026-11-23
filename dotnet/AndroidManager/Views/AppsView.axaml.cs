@@ -162,6 +162,7 @@ public partial class AppsView : UserControl
             var (_, stdout, stderr) = await Task.Run(() => new AdbClient(Ctx.AdbPath, serial, 60).Run(args));
 
             _packages = SystemInfoParser.ParsePkgs(stdout);
+            Ctx.Log($"Пакетов: {_packages.Count}");
 
             if (_packages.Count == 0)
                 CountLabel.Text = stderr.Trim().Length > 0 ? stderr.Trim() : "Приложения не найдены";
@@ -213,6 +214,9 @@ public partial class AppsView : UserControl
                 return;
         }
 
+        Ctx.Log($"Выполняется: {template} — приложений {selected.Count}...");
+        var done = 0;
+
         foreach (var pkg in selected)
         {
             var command = template.Replace("{pkg}", pkg, StringComparison.Ordinal);
@@ -224,6 +228,11 @@ public partial class AppsView : UserControl
 
             if (answer.Length > 0)
                 Ctx.Log($"{pkg}: {answer}");
+
+            done++;
         }
+
+        if (selected.Count > 1)
+            Ctx.Log($"Готово: обработка {done} приложений");
     }
 }
