@@ -95,6 +95,16 @@ dotnet test dotnet/AndroidManager.Core.Tests                                    
 `dotnet/` — порт на C#/.NET 10 + Avalonia 11, живёт отдельно и не влияет на Python-версию.
 `Android_manager.pyw` и `android_checkup.py` остаются на Python.
 
+**Два репозитория.** `dotnet/` — это вложенный git-репозиторий со своим `origin`:
+`kivinew/AndroidManager-CSharp` (ветка `main`), тогда как корень проекта пушится в
+`kivinew/ADB_andrey` (ветка `master`). При этом файлы `dotnet/` отслеживает **и** корневой
+репозиторий — так получилось исторически, и это не вложенный submodule. Следствия:
+
+- `git status` в корне не покажет изменения внутри `dotnet/`, если они уже закоммичены во вложенном репозитории (и наоборот) — состояние надо смотреть в обоих.
+- Правка файла в `dotnet/` требует коммита в **обоих** репозиториях, иначе копии разъедутся: `git -C dotnet commit` + `git -C dotnet push origin main` и `git commit` в корне + `git push origin master`.
+- `auto_commit.ps1` (Task Scheduler, ежедневно в 02:00) делает это автоматически для обоих — отсюда коммиты `Auto-commit: <дата>` в истории.
+- Перед коммитом в корень проверять, что `dotnet/` не остался с незакоммиченным изменением: иначе корневой коммит зафиксирует версию, отсутствующую во вложенном репозитории.
+
 - `AndroidManager.Core` — логика без UI, по смыслу повторяет `android_manager`: `Parsing/` (те же чистые функции над выводом adb), `Adb/` (`AdbRunner`, `AdbClient`, `AdbStream`, `ProcessKill`, `AdbServer`), `Devices/`, `Settings/` (`AppSettings`, `Defaults`). `AdbServer.EnsureStarted` при старте проверяет `adb version`, а при молчании делает `kill-server` + `start-server` с повтором — поэтому «пустой список устройств» сначала стоит искать там, а не в `Devices/`.
 - `AndroidManager` — оболочка Avalonia: `MainWindow` держит выбор устройства в шапке (он нужен всем вкладкам), вкладки в `Views/` — Подключение, Система (класс `CardsView`), Приложения, Процессы, Консоль, Логи, Действия, Скрипты, Настройки. `Controls/Sparkline` рисует графики на GPU. `Services/` — `AppState` (общее состояние), `UiDialogs` (Подтверждение/Сопряжение), `CustomBars` (кастомные кнопки панелей, редактор с шаблонами и перетаскивание между рядами).
 - `AndroidManager.Core.Tests` — xUnit. `dotnet test` на этой машине не работает (testhost падает на `OpenProcess` Access Denied), поэтому тесты запускаются своим раннером: `AndroidManager.SelfCheck`, который находит методы `Fact` и вызывает их сам. Новый тест — просто метод с `[Fact]` в `AndroidManager.Core.Tests`.
