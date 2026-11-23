@@ -6,13 +6,18 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
+using System.Diagnostics;
 
 namespace AndroidManager.Views;
 
 public partial class AppsView : UserControl
 {
     private List<string> _packages = new();
+
+    // Папка apk рядом с exe — та же схема, что в Python-версии (paths.BASE/apk).
+    private static string ApkDir => Path.Combine(AppContext.BaseDirectory, "apk");
 
     public AppState Ctx { get; set; } = null!;
 
@@ -25,7 +30,11 @@ public partial class AppsView : UserControl
 
         RefreshBtn.Click += (_, _) => _ = RefreshAsync();
         FilterBox.TextChanged += (_, _) => ApplyFilter();
-        Loaded += (_, _) => RefreshCustomBar();
+        Loaded += (_, _) => { RefreshCustomBar(); ReloadApks(); };
+
+        AddApkBtn.Click += (_, _) => _ = AddApkAsync();
+        InstallApkBtn.Click += (_, _) => _ = InstallApkAsync();
+        OpenApkFolderBtn.Click += (_, _) => OpenApkFolder();
 
         RunBtn.Click += (_, _) => _ = ActAsync("monkey -p {pkg} -c android.intent.category.LAUNCHER 1", null);
         StopBtn.Click += (_, _) => _ = ActAsync("am force-stop {pkg}", null);
@@ -43,6 +52,154 @@ public partial class AppsView : UserControl
     }
 
     private List<string> SelectedPackages() => PkgList.SelectedItems?.Cast<string>().ToList() ?? new List<string>();
+
+    /// <summary>Перечитывает папку apk: только *.apk, по алфавиту.</summary>
+    private void ReloadApks()
+    {
+        var current = ApkBox.SelectedItem as string;
+
+        Directory.CreateDirectory(ApkDir);
+        var files = Directory.GetFiles(ApkDir, "*.apk", SearchOption.TopDirectoryOnly)
+            .Select(Path.GetFileName)
+            .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        ApkBox.ItemsSource = files;
+        InstallApkBtn.IsEnabled = files.Count > 0;
+
+        if (current is not null && files.Contains(current))
+            ApkBox.SelectedItem = current;
+        else if (files.Count > 0)
+            ApkBox.SelectedIndex = 0;
+    }
+
+    /// <summary>Выбор APK в проводнике и копирование в папку apk.</summary>
+    private async Task AddApkAsync()
+    {
+        var top = TopLevel.GetTopLevel(this);
+        if (top is null)
+            return;
+
+        var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Выберите APK для добавления",
+            AllowMultiple = true,
+            FileTypeFilter =
+            [
+                new FilePickerFileType("Android-приложения") { Patterns = ["*.apk"] },
+            ],
+        });
+
+        foreach (var file in files)
+        {
+            var src = file.TryGetLocalPath();
+            if (src is null)
+                continue;
+
+            var name = Path.GetFileName(src);
+            var dst = Path.Combine(ApkDir, name);
+
+            try
+            {
+                Directory.CreateDirectory(ApkDir);
+
+                // Не перезаписываем молча: у второго файла добавляем «(2)».
+                var target = dst;
+                var n = 2;
+                while (File.Exists(target) && !(src == target))
+                {
+                    target = Path.Combine(ApkDir,
+                        $"{Path.GetFileNameWithoutExtension(name)} ({n++}){Path.GetExtension(name)}");
+                }
+
+                File.Copy(src, target, overwrite: false);
+                Ctx.Log($"APK добавлен в папку apk: {Path.GetFileName(target)}");
+                ApkBox.SelectedItem = Path.GetFileName(target);
+            }
+            catch (Exception ex)
+            {
+                Ctx.Log($"Не удалось скопировать {name}: {ex.Message}");
+            }
+        }
+
+        ReloadApks();
+    }
+
+    /// <summary>Установка выбранного APK: adb install -r.</summary>
+    private async Task InstallApkAsync()
+    {
+        var name = ApkBox.SelectedItem as string;
+        var serial = Ctx.Serial;
+
+        if (string.IsNullOrEmpty(serial))
+        {
+            Ctx.Log("Сначала подключите устройство");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(name))
+        {
+            Ctx.Log("Выберите APK");
+            return;
+        }
+
+        var path = Path.Combine(ApkDir, name);
+        if (!File.Exists(path))
+        {
+            Ctx.Log($"APK не найден: {path}");
+            ReloadApks();
+            return;
+        }
+
+        Ctx.Log($"Установка {name}...");
+        InstallApkBtn.IsEnabled = false;
+
+        try
+        {
+            // -r — переустановить с сохранением данных; -d — разрешить понижение версии.
+            var (rc, stdout, stderr) = await Task.Run(() =>
+                new AdbClient(Ctx.AdbPath, serial, 300).Run(["install", "-r", path]));
+
+            var answer = (stdout + stderr).Trim();
+            Ctx.Log(answer.Length > 0 ? answer : $"Установка {name}: код {rc}");
+
+            if (rc == 0 && answer.Contains("Success", StringComparison.Ordinal))
+            {
+                Ctx.Log($"Установлено: {name}");
+                await RefreshAsync();
+            }
+            else
+            {
+                Ctx.Log($"Не удалось установить {name}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Ctx.Log($"Ошибка установки {name}: {ex.Message}");
+        }
+        finally
+        {
+            InstallApkBtn.IsEnabled = true;
+        }
+    }
+
+    private void OpenApkFolder()
+    {
+        try
+        {
+            Directory.CreateDirectory(ApkDir);
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "explorer.exe",
+                Arguments = $"\"{ApkDir}\"",
+                UseShellExecute = true,
+            });
+        }
+        catch (Exception ex)
+        {
+            Ctx.Log($"Не удалось открыть папку apk: {ex.Message}");
+        }
+    }
 
     /// <summary>ПКМ-меню как в Python: кнопки панели «Приложения», копирование и запуск одного пакета.</summary>
     private void BuildContextMenu(ContextMenu menu)

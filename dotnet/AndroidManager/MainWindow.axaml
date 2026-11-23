@@ -29,7 +29,7 @@
             <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
               <StackPanel HorizontalAlignment="Right">
                 <TextBlock Text="ВЕРСИЯ UI" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource Muted}" HorizontalAlignment="Right" />
-                <TextBlock x:Name="UiVersion" Text="v1.33" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource Text}" HorizontalAlignment="Right" />
+                <TextBlock x:Name="UiVersion" Text="v1.34" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource Text}" HorizontalAlignment="Right" />
               </StackPanel>
               <StackPanel HorizontalAlignment="Right">
                 <TextBlock Text="ЯДРО" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource Muted}" HorizontalAlignment="Right" />
@@ -112,7 +112,15 @@
                 </Button.Content>
               </Button>
               <Button x:Name="BtnScripts" Classes="nav-btn" ToolTip.Tip="Скрипты">
-                <PathIcon Data="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16" Width="16" Height="16" />
+                <!-- Документ со строками: контур + три черты, как в макете -->
+                <Viewbox Width="16" Height="16" Stretch="Uniform">
+                  <Canvas Width="16" Height="16">
+                    <Path Stroke="{DynamicResource Accent}" StrokeThickness="1.4"
+                          Data="M3,1.5 L9.5,1.5 L13,5 L13,14.5 L3,14.5 Z" />
+                    <Path Stroke="{DynamicResource Accent}" StrokeThickness="1.4"
+                          Data="M5.4,7 L10.6,7 M5.4,9.5 L10.6,9.5 M5.4,12 L8.6,12" />
+                  </Canvas>
+                </Viewbox>
               </Button>
               <Button x:Name="BtnActions" Classes="nav-btn" ToolTip.Tip="Действия">
                 <!-- Векторная молния: растровая 16×16 в сайдбаре выглядела мыльной -->
