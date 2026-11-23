@@ -188,10 +188,12 @@ public partial class AppsView : UserControl
         try
         {
             Directory.CreateDirectory(ApkDir);
+
+            // Открываем папку самим путём: запуск explorer.exe с аргументами
+            // из GUI-процесса падает с 0xc0000142 (сбой инициализации DLL).
             Process.Start(new ProcessStartInfo
             {
-                FileName = "explorer.exe",
-                Arguments = $"\"{ApkDir}\"",
+                FileName = ApkDir,
                 UseShellExecute = true,
             });
         }
