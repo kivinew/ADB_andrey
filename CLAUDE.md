@@ -33,7 +33,7 @@ C#-версия (папка `dotnet/`), если нужен GPU-рендерин
 ```bash
 "/c/Program Files/dotnet/dotnet.exe" build dotnet/AndroidManager
 "/c/Program Files/dotnet/dotnet.exe" run   dotnet/AndroidManager                  # демо (окно)
-"/c/Program Files/dotnet/dotnet.exe" run   dotnet/AndroidManager.SelfCheck        # 31 тест, текстовая сводка
+"/c/Program Files/dotnet/dotnet.exe" run   dotnet/AndroidManager.SelfCheck        # 41 тест, текстовая сводка
 dotnet test dotnet/AndroidManager.Core.Tests                                      # каноничный запуск (не работает на этой машине)
 ```
 
@@ -62,7 +62,7 @@ dotnet test dotnet/AndroidManager.Core.Tests                                    
 
 Вкладка «Скрипты» исполняет произвольные `.py` из `scripts/` в пространстве имён, где уже определён объект `adb` (`ScriptAPI`), и одновременно подставляет модуль в `sys.modules`, чтобы работал и `import adb`. `AdbModule` в `scriptapi.py` делегирует все атрибуты живому `ScriptAPI`, иначе `import adb` дал бы только `shell`. Остановка пользователя — исключение `ScriptStop`. `scripts/adb.py` (шаблон — `script_shim.py`) нужен для запуска скриптов **вне** приложения: он берёт API из `__adb_api__` в globals и падает с понятной ошибкой, если скрипт запущен не через вкладку.
 
-`android_checkup.py` — диагностика ТВ: одна большая `adb shell` команда, вывод которой разметан строками `@@key=value`. Запускается как обычный пользовательский скрипт (или из корня репозитория — тогда подхватывается `adb.py`). Списки серверов для пинга и DNS для проверки правятся в «Настройках» (`checkup_servers`, `checkup_dns` в `settings.json`).
+`android_checkup.py` — диагностика **любых** Android-устройств (переписан из фирменного ТВ-скрипта): одна большая `adb shell` команда, вывод которой разметан строками `@@key=value`. Всё необязательное берётся каскадом с молчаливым пропуском: GPU (`mpgpu` → `kgsl` → `devfreq`), HDMI (`/sys/class/drm/*/status`), ядра CPU по policy, термические зоны, батарея. Запускается как обычный пользовательский скрипт (или из корня репозитория — тогда подхватывается `adb.py`). Списки серверов для пинга и DNS для проверки правятся в «Настройках» (`checkup_servers`, `checkup_dns` в `settings.json`). На реальных приставках уже ловили: старый `awk` не понимает `!/regex/` (нужен `grep -v`), на ТВ без батареи приходит фиктивная температура (порог `> 150` — это «десятые доли»), `rssi == -127` значит «не подключено», а не «слабый сигнал».
 
 ## Настройки и экспорт
 
@@ -107,7 +107,9 @@ dotnet test dotnet/AndroidManager.Core.Tests                                    
 
 - `AndroidManager.Core` — логика без UI, по смыслу повторяет `android_manager`: `Parsing/` (те же чистые функции над выводом adb), `Adb/` (`AdbRunner`, `AdbClient`, `AdbStream`, `ProcessKill`, `AdbServer`), `Devices/`, `Settings/` (`AppSettings`, `Defaults`). `AdbServer.EnsureStarted` при старте проверяет `adb version`, а при молчании делает `kill-server` + `start-server` с повтором — поэтому «пустой список устройств» сначала стоит искать там, а не в `Devices/`.
 - `AndroidManager` — оболочка Avalonia: `MainWindow` держит выбор устройства в шапке (он нужен всем вкладкам), вкладки в `Views/` — Подключение, Система (класс `CardsView`), Приложения, Процессы, Консоль, Логи, Действия, Скрипты, Настройки. `Controls/Sparkline` рисует графики на GPU. `Services/` — `AppState` (общее состояние), `UiDialogs` (Подтверждение/Сопряжение), `CustomBars` (кастомные кнопки панелей, редактор с шаблонами и перетаскивание между рядами).
-- `AndroidManager.Core.Tests` — xUnit. `dotnet test` на этой машине не работает (testhost падает на `OpenProcess` Access Denied), поэтому тесты запускаются своим раннером: `AndroidManager.SelfCheck`, который находит методы `Fact` и вызывает их сам. Новый тест — просто метод с `[Fact]` в `AndroidManager.Core.Tests`.
+- `AndroidManager.Core.Tests` — xUnit, 41 `[Fact]` в 8 файлах (`CardTests`, `SystemInfoTests`, `NumTests`, `ProcTests`, `SettingsTests`, `AdbServerTests`, `BatchTests`, `DeviceTests`). `dotnet test` на этой машине не работает (testhost падает на `OpenProcess` Access Denied), поэтому тесты запускаются своим раннером: `AndroidManager.SelfCheck`, который находит методы `Fact` и вызывает их сам. Новый тест — просто метод с `[Fact]` в `AndroidManager.Core.Tests`.
+- Проверка UI — проект-навык `.claude/skills/avalonia-ui-check/`: сборка, запуск exe фоном, снимок окна через `PrintWindow` (виден даже под полноэкранной игрой, в отличие от `CopyFromScreen`) и клик через UIA `AutomationId`. `dotnet run` в сессии агента блокирует инструмент — запускать exe напрямую.
+- `dotnet/AndroidManager/tools/` (adb, scrcpy) **исключён из git** и копируется рядом с exe из csproj при сборке. В свежем клоне его нет: вкладка «Действия» просто не найдёт scrcpy, а ядро свалится на поиске `adb`. Не считать это регрессией, пока не проверена папка.
 
 Настройки C#-версии — `settings.json` рядом с exe: у неё своя папка, с Python-версией и её настройками они не пересекаются. Ключи в файле snake_case, как у Python-версии, чтобы файлы было видно глазами рядом.
 
@@ -116,3 +118,5 @@ dotnet test dotnet/AndroidManager.Core.Tests                                    
 Вкладка «Скрипты» (`Views/ScriptsView.axaml.cs`) исполняет скрипты **внешним процессом**, а не внутри приложения: `.py` — `python -c "import runpy…"` с предварительной подстановкой модуля `adb` в `sys.modules`, `.ps1` — `powershell -NoProfile -ExecutionPolicy Bypass -File`, `.sh`/`.bat`/`.cmd` — аналогично своему интерпретатору. Путь к `adb`-шиму (`scripts/adb.py`) создаёт сама вкладка; подключённое устройство приходит в процесс через переменную окружения `ANDROID_SERIAL`, поэтому скрипт не знает про UI и работает при любом состоянии `AppState`. Ограничение подхода: встроенный в приложение ADB-клиент скрипту недоступен — только внешний `adb` из PATH.
 
 Ловушки сборки: перед `dotnet build` закрывать запущенный exe (`taskkill //f //im AndroidManager.exe`), иначе MSB3021/3027. Ошибка XAML оставляет битый инкрементальный кэш — лечится `dotnet build --no-incremental`.
+
+Ловушки Avalonia 11, на которые уже наступали: `OpacityMask` берёт кисть (`ImageBrush`), а не путь; у `DropShadowEffect` нет `Direction`/`ShadowDepth`; у `Path` нет `StrokeLineJoin`/`StrokeStartLineCap`; `PathIcon` размыт — векторный `Path` в `Viewbox`; сеттер стиля на `/template/ ContentPresenter` перекрывает локально заданный `Foreground`, поэтому цвета состояний делаются классами (`connect-on`/`connect-off`); после смены `ItemsSource` `ScrollViewer.Extent` ещё старое — прокрутку ставить через `Dispatcher.UIThread.Post(..., DispatcherPriority.Background)`. Открывать папку из GUI надо путём (`Process.Start(ApkDir, UseShellExecute)`) — `explorer.exe` с аргументами падает с `0xc0000142`.
