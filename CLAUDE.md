@@ -95,12 +95,14 @@ dotnet test dotnet/AndroidManager.Core.Tests                                    
 `dotnet/` — порт на C#/.NET 10 + Avalonia 11, живёт отдельно и не влияет на Python-версию.
 `Android_manager.pyw` и `android_checkup.py` остаются на Python.
 
-- `AndroidManager.Core` — логика без UI, по смыслу повторяет `android_manager`: `Parsing/` (те же чистые функции над выводом adb), `Adb/` (`AdbRunner`, `AdbClient`, `AdbStream`, `ProcessKill`), `Devices/`, `Settings/` (`AppSettings`, `Defaults`).
-- `AndroidManager` — оболочка Avalonia: `MainWindow` держит выбор устройства в шапке (он нужен всем вкладкам), пять вкладок в `Views/` — Подключение, Консоль, Приложения, Карточки, Настройки. `Controls/Sparkline` рисует графики на GPU. `Services/` — `AppState` (общее состояние) и `UiDialogs` (Подтверждение/Сопряжение).
+- `AndroidManager.Core` — логика без UI, по смыслу повторяет `android_manager`: `Parsing/` (те же чистые функции над выводом adb), `Adb/` (`AdbRunner`, `AdbClient`, `AdbStream`, `ProcessKill`, `AdbServer`), `Devices/`, `Settings/` (`AppSettings`, `Defaults`). `AdbServer.EnsureStarted` при старте проверяет `adb version`, а при молчании делает `kill-server` + `start-server` с повтором — поэтому «пустой список устройств» сначала стоит искать там, а не в `Devices/`.
+- `AndroidManager` — оболочка Avalonia: `MainWindow` держит выбор устройства в шапке (он нужен всем вкладкам), вкладки в `Views/` — Подключение, Система (класс `CardsView`), Приложения, Процессы, Консоль, Логи, Действия, Скрипты, Настройки. `Controls/Sparkline` рисует графики на GPU. `Services/` — `AppState` (общее состояние), `UiDialogs` (Подтверждение/Сопряжение), `CustomBars` (кастомные кнопки панелей, редактор с шаблонами и перетаскивание между рядами).
 - `AndroidManager.Core.Tests` — xUnit. `dotnet test` на этой машине не работает (testhost падает на `OpenProcess` Access Denied), поэтому тесты запускаются своим раннером: `AndroidManager.SelfCheck`, который находит методы `Fact` и вызывает их сам. Новый тест — просто метод с `[Fact]` в `AndroidManager.Core.Tests`.
 
 Настройки C#-версии — `settings.json` рядом с exe: у неё своя папка, с Python-версией и её настройками они не пересекаются. Ключи в файле snake_case, как у Python-версии, чтобы файлы было видно глазами рядом.
 
 Ловушки переноса с Python: `//` — это flooring, а не усечение (есть `Num.FloorDiv`); новый процесс в `parse_proc_output` получает `dp = 0`, а не «тики минус ноль»; `f"{x:.0f}"` — это не `"{x}"`, иначе в русской локали выйдет «2,5» вместо «2».
 
-Открытый вопрос: вкладка «Скрипты» исполняет Python через `import adb`. Для C#-версии это Roslyn (ломает совместимость), Python.NET (Python остаётся в проекте) или внешний процесс.
+Вкладка «Скрипты» (`Views/ScriptsView.axaml.cs`) исполняет скрипты **внешним процессом**, а не внутри приложения: `.py` — `python -c "import runpy…"` с предварительной подстановкой модуля `adb` в `sys.modules`, `.ps1` — `powershell -NoProfile -ExecutionPolicy Bypass -File`, `.sh`/`.bat`/`.cmd` — аналогично своему интерпретатору. Путь к `adb`-шиму (`scripts/adb.py`) создаёт сама вкладка; подключённое устройство приходит в процесс через переменную окружения `ANDROID_SERIAL`, поэтому скрипт не знает про UI и работает при любом состоянии `AppState`. Ограничение подхода: встроенный в приложение ADB-клиент скрипту недоступен — только внешний `adb` из PATH.
+
+Ловушки сборки: перед `dotnet build` закрывать запущенный exe (`taskkill //f //im AndroidManager.exe`), иначе MSB3021/3027. Ошибка XAML оставляет битый инкрементальный кэш — лечится `dotnet build --no-incremental`.
