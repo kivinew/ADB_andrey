@@ -189,13 +189,13 @@ public partial class AppsView : UserControl
         {
             Directory.CreateDirectory(ApkDir);
 
-            // explorer.exe с аргументами и UseShellExecute=true работает из GUI-процесса.
-            // FileName = path с UseShellExecute=true — не открывает окно.
+            // explorer.exe с UseShellExecute=false работает из GUI-процесса и показывает окно.
+            // UseShellExecute=true для explorer.exe — не открывает окно.
             Process.Start(new ProcessStartInfo
             {
                 FileName = "explorer.exe",
                 Arguments = ApkDir,
-                UseShellExecute = true,
+                UseShellExecute = false,
             });
         }
         catch (Exception ex)

@@ -416,13 +416,13 @@ __all__ = ['shell', 'call', 'getprop', 'packages', 'force_stop', 'clear', 'disab
             var dir = ScriptsDir;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                // explorer.exe с аргументами и UseShellExecute=true работает из GUI-процесса.
-                // FileName = path с UseShellExecute=true — не открывает окно.
+                // explorer.exe с UseShellExecute=false работает из GUI-процесса и показывает окно.
+                // UseShellExecute=true для explorer.exe — не открывает окно.
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = "explorer.exe",
                     Arguments = dir,
-                    UseShellExecute = true,
+                    UseShellExecute = false,
                 });
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
