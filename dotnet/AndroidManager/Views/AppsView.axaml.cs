@@ -189,14 +189,21 @@ public partial class AppsView : UserControl
         {
             Directory.CreateDirectory(ApkDir);
 
-            // explorer.exe с UseShellExecute=false работает из GUI-процесса и показывает окно.
-            // UseShellExecute=true для explorer.exe — не открывает окно.
-            Process.Start(new ProcessStartInfo
+            Ctx.Log($"Открытие папки APK: {ApkDir}");
+
+            // explorer.exe с UseShellExecute=false и явным WorkingDirectory — работает из WinExe.
+            // Ключевой момент: нужно задать WorkingDirectory, иначе процесс создаётся в невидимом сеансе.
+            var psi = new ProcessStartInfo
             {
                 FileName = "explorer.exe",
                 Arguments = ApkDir,
                 UseShellExecute = false,
-            });
+                CreateNoWindow = false,
+                WindowStyle = ProcessWindowStyle.Normal,
+                WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.System),
+            };
+            var proc = Process.Start(psi);
+            Ctx.Log($"explorer.exe вернул: {proc?.Id ?? -1}, HasExited: {proc?.HasExited}");
         }
         catch (Exception ex)
         {

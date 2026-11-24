@@ -416,14 +416,20 @@ __all__ = ['shell', 'call', 'getprop', 'packages', 'force_stop', 'clear', 'disab
             var dir = ScriptsDir;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                // explorer.exe с UseShellExecute=false работает из GUI-процесса и показывает окно.
-                // UseShellExecute=true для explorer.exe — не открывает окно.
-                Process.Start(new ProcessStartInfo
+                AppendOutput($"[отладка] Открытие папки скриптов: {dir}");
+
+                // explorer.exe с UseShellExecute=false и явным WorkingDirectory — работает из WinExe.
+                var psi = new ProcessStartInfo
                 {
                     FileName = "explorer.exe",
                     Arguments = dir,
                     UseShellExecute = false,
-                });
+                    CreateNoWindow = false,
+                    WindowStyle = ProcessWindowStyle.Normal,
+                    WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.System),
+                };
+                var proc = Process.Start(psi);
+                AppendOutput($"[отладка] explorer.exe вернул: {proc?.Id ?? -1}, HasExited: {proc?.HasExited}");
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 Process.Start("open", dir);
