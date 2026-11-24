@@ -415,7 +415,15 @@ __all__ = ['shell', 'call', 'getprop', 'packages', 'force_stop', 'clear', 'disab
         {
             var dir = ScriptsDir;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                Process.Start(new ProcessStartInfo("explorer.exe", $"\"{dir}\"") { UseShellExecute = true });
+            {
+                // Открываем папку путём: запуск explorer.exe с аргументами из GUI-процесса
+                // падает с 0xc0000142 (сбой инициализации DLL).
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = dir,
+                    UseShellExecute = true,
+                });
+            }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 Process.Start("open", dir);
             else
