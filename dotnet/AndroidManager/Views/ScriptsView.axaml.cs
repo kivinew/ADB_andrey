@@ -411,35 +411,13 @@ __all__ = ['shell', 'call', 'getprop', 'packages', 'force_stop', 'clear', 'disab
 
     private void OpenScriptsFolder()
     {
-        try
+        var ok = FolderOpener.Open(ScriptsDir, msg =>
         {
-            var dir = ScriptsDir;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                AppendOutput($"[отладка] Открытие папки скриптов: {dir}");
-
-                // explorer.exe с UseShellExecute=false и явным WorkingDirectory — работает из WinExe.
-                var psi = new ProcessStartInfo
-                {
-                    FileName = "explorer.exe",
-                    Arguments = dir,
-                    UseShellExecute = false,
-                    CreateNoWindow = false,
-                    WindowStyle = ProcessWindowStyle.Normal,
-                    WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.System),
-                };
-                var proc = Process.Start(psi);
-                AppendOutput($"[отладка] explorer.exe вернул: {proc?.Id ?? -1}, HasExited: {proc?.HasExited}");
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                Process.Start("open", dir);
-            else
-                Process.Start("xdg-open", dir);
-        }
-        catch (Exception ex)
-        {
-            AppendOutput($"[ошибка] {ex.Message}");
-        }
+            AppendOutput($"[папка] {msg}");
+            Ctx?.Log(msg);
+        });
+        if (!ok)
+            AppendOutput("[ошибка] Не удалось открыть папку скриптов (подробности выше)");
     }
 
     private async Task CopyOutputAsync()

@@ -185,30 +185,8 @@ public partial class AppsView : UserControl
 
     private void OpenApkFolder()
     {
-        try
-        {
-            Directory.CreateDirectory(ApkDir);
-
-            Ctx.Log($"Открытие папки APK: {ApkDir}");
-
-            // explorer.exe с UseShellExecute=false и явным WorkingDirectory — работает из WinExe.
-            // Ключевой момент: нужно задать WorkingDirectory, иначе процесс создаётся в невидимом сеансе.
-            var psi = new ProcessStartInfo
-            {
-                FileName = "explorer.exe",
-                Arguments = ApkDir,
-                UseShellExecute = false,
-                CreateNoWindow = false,
-                WindowStyle = ProcessWindowStyle.Normal,
-                WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.System),
-            };
-            var proc = Process.Start(psi);
-            Ctx.Log($"explorer.exe вернул: {proc?.Id ?? -1}, HasExited: {proc?.HasExited}");
-        }
-        catch (Exception ex)
-        {
-            Ctx.Log($"Не удалось открыть папку apk: {ex.Message}");
-        }
+        if (!FolderOpener.Open(ApkDir, msg => Ctx.Log(msg)))
+            Ctx.Log("Не удалось открыть папку APK (подробности выше)");
     }
 
     /// <summary>ПКМ-меню как в Python: кнопки панели «Приложения», копирование и запуск одного пакета.</summary>
