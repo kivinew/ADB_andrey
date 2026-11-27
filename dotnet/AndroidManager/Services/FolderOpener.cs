@@ -43,7 +43,7 @@ internal static class FolderOpener
                     new ProcessStartInfo { FileName = dir, UseShellExecute = true }))
                 return true;
 
-            // 3) Запасной вариант: explorer.exe тоже через ShellExecute, путь в кавычках.
+            // 3) Последний вариант: explorer.exe как дочерний процесс (на некоторых системах падает с 0xc0000142).
             return TryStart(log, "Process.Start ShellExecute (explorer.exe)",
                 new ProcessStartInfo { FileName = "explorer.exe", Arguments = $"\"{dir}\"", UseShellExecute = true });
         }
